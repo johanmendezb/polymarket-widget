@@ -24,7 +24,7 @@
     "test:e2e": "playwright test",
     "test:live": "vitest run --config vitest.live.config.ts",
     "record-fixtures": "node --experimental-strip-types scripts/record-fixtures.ts",
-    "warm": "node scripts/not-implemented.mjs warm T1.3"
+    "warm": "node scripts/warm.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
