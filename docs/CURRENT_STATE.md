@@ -7,16 +7,16 @@ health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
 active_epic: E2
-active_task: T2.5 (Kelly sizing, P2), then T2.6 (abstention gate)
+active_task: T2.6 (abstention gate) - final task of the E2 simulation engine dispatch
 blocked_by: []
-last_completed: T2.4
-next_action: T2.4 (computeCostWaterfall + computeEdge) is done in src/simulation/edge.ts, reproducing the ORDER_EXECUTION.md §3 worked waterfall exactly. Next is T2.5 (kellyFraction/suggestedSize, priority P2 - stop and report if running long before this), then T2.6 (evaluateGate, the 11-rule abstention gate).
+last_completed: T2.5
+next_action: T2.5 (kellyFraction/suggestedSize) is done in src/simulation/kelly.ts, reproducing the q=0.90/p=0.95 worked illustration exactly (full 0.5, quarter 0.125, both capped to 2%). Only T2.6 (evaluateGate, 11 rules) remains to close out the E2 simulation engine dispatch.
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_121_UNIT (up from 113; T2.4 added 5 tests: the full worked waterfall reproduced to 5dp, unclamped negative edge, and two empty-book fallback cases. 100% branch coverage on src/simulation held.)
+tests_status: GREEN_134_UNIT (up from 121; T2.5 added 10 Kelly tests: the worked illustration at all three modes, the 2% hard cap, null on zero/negative edge, and a q=1.00 guard against division by zero. 100% branch coverage on src/simulation held.)
 deployment_status: NOT_DEPLOYED
 environment: staging_only_render
 awaiting_qa: []
