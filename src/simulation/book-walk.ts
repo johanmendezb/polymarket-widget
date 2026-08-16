@@ -2,7 +2,6 @@ import {
   asPrice,
   asShares,
   asUsdc,
-  feeRateValue,
   priceValue,
   sharesValue,
   usdcValue,
@@ -15,6 +14,8 @@ import {
   type Shares,
   type Usdc,
 } from '@/domain';
+
+import { computeFee } from './fees';
 
 /**
  * `walkBook` / `walkBookByBudget` implement `docs/03-domain/ORDER_EXECUTION.md` §1 exactly.
@@ -31,26 +32,6 @@ const ZERO_PRICE = asPrice(0);
 /** Floating-point noise can push a value a hair outside [0,1]; clamp before re-branding. */
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
-}
-
-function roundTo5dp(value: number): number {
-  return Math.round(value * 100_000) / 100_000;
-}
-
-/**
- * The taker fee formula, `docs/03-domain/ORDER_EXECUTION.md` §2. `feeRate` is read from
- * `feeConfig`, never hardcoded (ADR-0009). This is a private duplicate of what will become the
- * standalone `computeFee` export in T2.3; book-walk.ts is refactored to call that export instead
- * once it lands, so the formula exists in exactly one place.
- */
-function computeFeeForFill(shares: Shares, averagePrice: Price, feeConfig: FeeConfig): Usdc {
-  if (!feeConfig.enabled || feeRateValue(feeConfig.takerRate) === 0) return asUsdc(0);
-
-  const p = priceValue(averagePrice);
-  const raw = sharesValue(shares) * feeRateValue(feeConfig.takerRate) * p * (1 - p);
-  const rounded = roundTo5dp(raw);
-  if (rounded > 0) return asUsdc(rounded);
-  return raw > 0 ? asUsdc(0.00001) : asUsdc(0);
 }
 
 interface WalkResult {
@@ -149,7 +130,7 @@ function finalize(
   const topOfBookPrice = book.asks.length > 0 ? (book.asks[0] as { price: Price }).price : ZERO_PRICE;
   const priceImpact = asPrice(clamp01(priceValue(walk.averagePrice) - priceValue(topOfBookPrice)));
   const grossCost = asUsdc(sharesValue(walk.sharesFilled) * priceValue(walk.averagePrice));
-  const fee = computeFeeForFill(walk.sharesFilled, walk.averagePrice, feeConfig);
+  const fee = computeFee(walk.sharesFilled, walk.averagePrice, feeConfig);
   const totalCost = asUsdc(usdcValue(grossCost) + usdcValue(fee));
   const payoutIfWin = asUsdc(sharesValue(walk.sharesFilled));
   const netProfitIfWin = asUsdc(usdcValue(payoutIfWin) - usdcValue(totalCost));
