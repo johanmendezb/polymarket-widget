@@ -9,20 +9,37 @@ Upstream field names are deliberately **not** reused. The mapping from Gamma/CLO
 ## 1. Core entities
 
 ```ts
-/** Probability in [0,1]. Branded so it cannot be confused with a price or a percentage. */
-type Probability = number & { readonly __brand: 'Probability' };
+declare const BRAND: unique symbol;
+type Branded<Tag extends string> = { readonly [BRAND]: Tag };
+
+/** Probability in [0,1]. What the model believes. Never a percentage. */
+type Probability = Branded<'Probability'>;
 
 /** Price per share in USDC, in [0,1]. Numerically equal to probability, semantically not. */
-type Price = number & { readonly __brand: 'Price' };
+type Price = Branded<'Price'>;
 
 /** A count of outcome shares. Each winning share pays exactly 1 USDC. */
-type Shares = number & { readonly __brand: 'Shares' };
+type Shares = Branded<'Shares'>;
 
-/** USDC amount. */
-type Usdc = number & { readonly __brand: 'Usdc' };
+/** USDC amount. May be negative: a loss is a real amount. */
+type Usdc = Branded<'Usdc'>;
+
+/** Taker fee rate in [0,1]. Read per market, never hardcoded. */
+type FeeRate = Branded<'FeeRate'>;
 ```
 
 The branding is not ceremony. The single most common bug in this domain is multiplying a probability by a price, or displaying a price as a percentage without conversion. The compiler should catch it.
+
+**These brands are opaque, not intersections with `number`.** An earlier revision of this document wrote them as `number & { readonly __brand: 'Price' }`. That shape fails at the only job it has: it is still a `number`, so `probability * price` type-checks and quietly yields a meaningless figure. The opaque form is not assignable to `number`, so no arithmetic operator accepts it. Values are built and unwrapped by name (T2.1):
+
+```ts
+asProbability(0.62)   asPrice(0.62)   asShares(100)   asUsdc(-3.25)   asFeeRate(0.04)
+tryAsProbability(1.5) // → null, for boundary code that prefers to branch
+probabilityValue(p)   priceValue(p)   sharesValue(s)  usdcValue(u)    feeRateValue(r)
+priceToProbability(p) probabilityToPrice(p)  // the only sanctioned crossing
+```
+
+`asProbability`, `asPrice` and `asFeeRate` throw `RangeError` outside [0,1]; `asShares` rejects negatives; all five reject `NaN` and the infinities. Arithmetic therefore reads `priceValue(a) * sharesValue(b)`, which is the point: every crossing of a unit boundary is visible in the diff. TypeScript still permits `<` and `>` between two values of the *same* brand, so sorting and thresholding stay readable.
 
 ```ts
 interface MarketOutcome {
@@ -146,22 +163,28 @@ Two further things the zod schema and the client have to get right:
 ## 3. Fees
 
 ```ts
-interface FeeConfig {
+interface FeeConfigBase {
   enabled: boolean;
   /** Taker fee rate, e.g. 0.04 for politics. Read per-market from the API. */
-  takerRate: number;
+  takerRate: FeeRate;
   /** Makers pay nothing. Kept for completeness and future maker simulation. */
-  makerRate: number;
+  makerRate: FeeRate;
   /** Human label for the UI, e.g. "Politics · 4% taker rate". */
   displayLabel: string;
-  /** Where the rate came from, so the UI can be honest about it. */
-  source: 'market-object' | 'clob-fee-rate-endpoint' | 'category-fallback';
 }
+
+/** A union, so `source` and `estimated` cannot disagree. */
+type FeeConfig =
+  | (FeeConfigBase & { source: 'market-object';           estimated: false })
+  | (FeeConfigBase & { source: 'clob-fee-rate-endpoint';  estimated: false })
+  | (FeeConfigBase & { source: 'category-fallback';       estimated: true  });
 ```
 
 The formula lives in `src/simulation/fees.ts` as a pure function. See `03-domain/ORDER_EXECUTION.md` §2.
 
-`source: 'category-fallback'` must cause the UI to label the fee as estimated. We do not silently substitute a number and present it as fact.
+`source: 'category-fallback'` must cause the UI to label the fee as estimated. We do not silently substitute a number and present it as fact. The union carries `estimated` as part of the discriminant so the label follows from the type rather than from someone remembering to set a flag (T2.1).
+
+**An absent upstream fee field is not a zero rate.** A live, liquid market checked 2026-08-16 returned `feesEnabled: false`, `feeType: null`, `takerBaseFee: null`. Mapping that to `{ takerRate: 0, source: 'market-object' }` puts a $0.00 fee line in the cost preview, which is the failure ADR-0009 exists to prevent. Missing fields mean `category-fallback`, and the type makes you write that out.
 
 ---
 
