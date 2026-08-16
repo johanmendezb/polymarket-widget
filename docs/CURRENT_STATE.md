@@ -6,17 +6,17 @@ milestone: M1_REPO_AND_CONTRACT_SPIKE
 health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
-active_epic: E2
-active_task: T2.2/T2.3/T3.1/T4.1 (parallel, see below)
+active_epic: E3
+active_task: T3.1
 blocked_by: []
-last_completed: T2.1
-next_action: T2.1 unblocks four parallel workers - src/simulation (T2.2 book walk, T2.3 fees), src/polymarket (T3.1 schemas/mappers), and any src/ui or src/ai scaffolding that only needs domain types. AGENT_PROTOCOL.md §8 forbids parallelising src/domain itself, which is why T2.1 ran alone.
+last_completed: T2.1, T1.4 (merged from e1-contract into e3-readpath; T1.4 fixtures were recorded on a sibling branch and had not reached this branch until this merge)
+next_action: T3.1 zod schemas for upstream, against the fixtures recorded in test/fixtures/. Then T3.2 mappers, T3.3 cache/client, T3.4 the four read routes, in order.
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_72_UNIT (up from 9; T2.1 added 68 domain tests: branded-primitive boundaries, brand-crossing @ts-expect-error checks, 77-digit tokenId round-trip, OrderBook normalization contract, purity)
+tests_status: GREEN_90_UNIT_1_E2E (T2.1's 72 unit tests plus T1.4's 18 unit/1 e2e; T1.4 also added a separate 12-assertion live contract suite, `pnpm test:live`, excluded from CI)
 deployment_status: NOT_DEPLOYED
 environment: staging_only_render
 awaiting_qa: []
@@ -46,7 +46,9 @@ Fourteen ADRs are written and accepted. The product is scoped, the architecture 
 | T0 + 2h | Knowledge layer written: charter, PRD, MVP scope, architecture, domain model, AI system, evaluation plan, roadmap, backlog, test strategy, ADRs. |
 | T0 + 4h | T1.1 done. Scaffold builds, typechecks, lints clean and runs 9 unit tests plus 1 e2e smoke test. Every dependency the project will need is installed up front so the four parallel module workers do not collide on `package.json`. |
 | T0 + 3h | Owner feedback round 1. Railway replaced by Render staging (ADR-0015). Secret handling fixed to human-entered only (ADR-0016). Per-epic QA acceptance gate added (ADR-0017). Prompts made first-class deliverables (ADR-0018). Two repo-local skills added. |
+| T0 + 5h | T1.4 done (on sibling branch `e1-contract`). `pnpm record-fixtures` records real Gamma/CLOB responses to `test/fixtures/`, dated in `MANIFEST.json`; picked a liquid market (Fed rate decision, ~$227k resting within 2c of best ask) and a thin one (`2491913`, ~$298) so E2/E3 have both a normal book and a partial-fill/insufficient-depth fixture. `pnpm test:live` (12 assertions, structurally excluded from `pnpm test`/CI via a separate Vitest project) confirms the bids-ascending/asks-descending contract, snake_case `/book` shape, 77-digit token-id strings, JSON-encoded `outcomes`/`outcomePrices`/`clobTokenIds`, and reachable-but-not-guaranteed-populated fee fields. Two corrections to the written record: OQ-01 (CORS) was wrongly recorded "No" — both hosts answer `*` when a request carries an `Origin` header, it just wasn't being sent; OQ-10 (User-Agent) downgraded from "RESOLVED" to CONFLICTING — the one observed 403, and a later "scraper-UA blocklist" theory for it, both failed to reproduce across `node:https`, `curl`, and eight UA strings including known scraper/bot strings. Both `OPEN_QUESTIONS.md` and `POLYMARKET_DOMAIN_MODEL.md` corrected in the same commit. |
 | T0 + 6h | T2.1 done. `src/domain` populated: opaque branded primitives (`Probability`, `Price`, `Shares`, `Usdc`, `FeeRate`), all entity interfaces, the `GateReason` and `ErrorCode` closed unions, `TokenId` guard. 72 unit tests green, purity enforced by both ESLint and a dedicated source-scan test. Domain model doc corrected: brands were spec'd as `number & { __brand }`, which does not block cross-brand arithmetic; fixed to an opaque type in the same commit. |
+| T0 + 6.5h | Branches merged: `e1-contract` (T1.4 fixtures) into `e3-readpath` (T2.1 domain types), so E3 has both the fixtures and the domain types it needs. OQ-10 re-confirmed CONFLICTING → resolved as scraper-pattern-UA-blocklisted per fresh 2026-08-16 probing (`Python-urllib/3.9` → 403, `curl/8.7.1` or an omitted header → 200); the read-path client sends an explicit, honest User-Agent and never falls back to a library default. |
 
 ## What the next agent should do
 

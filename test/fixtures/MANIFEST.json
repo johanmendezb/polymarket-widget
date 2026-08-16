@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-08-16T23:21:31.474Z",
+  "recordedBy": "pnpm record-fixtures",
+  "userAgent": "polymarket-second-opinion-fixture-recorder/0.1",
+  "authentication": "none: no API key, no wallet, no auth header on any call",
+  "observations": {
+    "oq01CorsAllowOrigin": "A request carrying an Origin header got back access-control-allow-origin: *. The recorded fixtures below never send an Origin header, so their own accessControlAllowOrigin is expected to be null — that is not evidence CORS is closed.",
+    "oq10UserAgentRequired": "A request carrying no User-Agent header returned 200 at the time of recording. See OQ-10: this has been observed as both 200 and 403 across different runs/clients and the cause is unresolved, so treat a single run's result here as a data point, not a contract."
+  },
+  "fixtures": [
+    {
+      "file": "gamma-public-search-election.json",
+      "url": "https://gamma-api.polymarket.com/public-search?q=election",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:20.441Z",
+      "accessControlAllowOrigin": null,
+      "note": "Contracted search call, q=election."
+    },
+    {
+      "file": "gamma-market-first-search-result.json",
+      "url": "https://gamma-api.polymarket.com/markets/2491900",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:20.922Z",
+      "accessControlAllowOrigin": null,
+      "note": "Market object for the first market in the search response (id 2491900)."
+    },
+    {
+      "file": "clob-book-liquid.json",
+      "url": "https://clob.polymarket.com/book?token_id=5615282760875985231868508008056959876238536896643315063916840237042205273721",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:29.105Z",
+      "accessControlAllowOrigin": null,
+      "note": "Deepest book found. market 2252244 \"Will there be no change in Fed interest rates after the September 2026 meeting?\", outcome \"Yes\", best ask 0.75, $226,867 resting within 0.02 of it across 25 ask levels and 64 bid levels."
+    },
+    {
+      "file": "gamma-market-liquid.json",
+      "url": "https://gamma-api.polymarket.com/markets/2252244",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:30.015Z",
+      "accessControlAllowOrigin": null,
+      "note": "Market object paired with clob-book-liquid.json: fee fields, tick size, min order size."
+    },
+    {
+      "file": "clob-book-thin.json",
+      "url": "https://clob.polymarket.com/book?token_id=96546191245698015702072322110162164634942129164748792113006489042137462161934",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:30.214Z",
+      "accessControlAllowOrigin": null,
+      "note": "Thinnest usable book found; E2 walks past its depth. market 2491913 \"Will Trump not endorse a Party in the 2026 Israeli Election?\", outcome \"Yes\", best ask 0.42, $298 resting within 0.02 of it across 21 ask levels and 8 bid levels."
+    },
+    {
+      "file": "gamma-market-thin.json",
+      "url": "https://gamma-api.polymarket.com/markets/2491913",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:30.595Z",
+      "accessControlAllowOrigin": null,
+      "note": "Market object paired with clob-book-thin.json."
+    },
+    {
+      "file": "clob-prices-history-liquid.json",
+      "url": "https://clob.polymarket.com/prices-history?market=5615282760875985231868508008056959876238536896643315063916840237042205273721&interval=1w&fidelity=60",
+      "httpStatus": 200,
+      "recordedAt": "2026-08-16T23:21:30.906Z",
+      "accessControlAllowOrigin": null,
+      "note": "One week of hourly prices for the liquid token (market 2252244)."
+    }
+  ]
+}

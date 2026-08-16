@@ -155,8 +155,11 @@ Two further things the zod schema and the client have to get right:
   as `"[\"7214...\",\"2714...\"]"` and needs `JSON.parse` before the per-element `/^\d+$/`
   validation. `outcomes` and `outcomePrices` are encoded the same way, and all three must parse to
   arrays of equal length — see §2's pairing rule.
-- **Send an explicit `User-Agent`.** A request with none returns `403 Forbidden` from the CLOB
-  host; the identical URL with an ordinary UA returns `200`. See OQ-10.
+- **Send an explicit `User-Agent`, but do not depend on it.** A single request with no UA once
+  returned `403 Forbidden`. That did not reproduce across multiple clients and UA strings,
+  including known scraper strings, on a later sweep — status is CONFLICTING, cause unknown, see
+  OQ-10. The client sends an explicit UA regardless, as a no-cost defensive measure and a courtesy
+  to identify our traffic, not because it is known to be load-bearing.
 
 ---
 
