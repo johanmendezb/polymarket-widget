@@ -49,21 +49,48 @@ jobs:
       - run: pnpm build
 
       # CLAUDE.md rule 7: the Anthropic key is server-side only. This step is
-      # what makes that enforceable rather than aspirational. It reads the
-      # built *client* bundle only — `.next/server` legitimately references the
-      # variable, `.next/static` never may.
+      # what makes that enforceable rather than aspirational.
+      #
+      # Two halves, because one alone does not cover the rule:
+      #
+      #   (a) The bundle scan reads the built *client* bundle only. `.next/server`
+      #       legitimately references the variable; `.next/static` never may.
+      #       This is what catches a real key value that reached the browser.
+      #
+      #   (b) The name scan exists because Next inlines `NEXT_PUBLIC_*` at build
+      #       time as the *value*: `process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY`
+      #       compiles to the literal string, so the variable name never appears
+      #       in `.next/static` at all. Verified empirically against this build.
+      #       Half (a) therefore cannot see a `NEXT_PUBLIC_ANTHROPIC_API_KEY`
+      #       leak unless the value happens to be key-shaped, which is exactly
+      #       the case you cannot rely on. The name is only visible before the
+      #       build, so that is where it is caught.
       - name: secret-leak
         run: |
           set -euo pipefail
+          failed=0
+
           if [ ! -d .next/static ]; then
             echo "::error::.next/static is missing; the build produced no client bundle, so this check proved nothing."
             exit 1
           fi
           if grep -ral -e 'ANTHROPIC' -e 'sk-ant-' .next/static; then
             echo "::error::An Anthropic identifier reached the client bundle. Do not print or commit the value. See CLAUDE.md rule 7 and docs/08-operations/SECRETS.md."
-            exit 1
+            failed=1
           fi
-          echo "secret-leak: clean, no Anthropic identifier in .next/static."
+
+          if grep -rnE 'NEXT_PUBLIC_[A-Z0-9_]*ANTHROPIC' src .env.example; then
+            echo "::error::A NEXT_PUBLIC_ Anthropic variable is referenced in client-reachable source. The key is server-side only: CLAUDE.md rule 7."
+            failed=1
+          fi
+          # Names only. Never print a value, not even to prove it exists.
+          if env | cut -d= -f1 | grep -qE '^NEXT_PUBLIC_[A-Z0-9_]*ANTHROPIC'; then
+            echo "::error::A NEXT_PUBLIC_ Anthropic variable is set in the build environment; its value would be inlined into the client bundle."
+            failed=1
+          fi
+
+          if [ "$failed" -ne 0 ]; then exit 1; fi
+          echo "secret-leak: clean. No Anthropic identifier in .next/static, and no NEXT_PUBLIC_ Anthropic variable in source or environment."
 
   # docs/04-architecture/SECURITY.md: "pnpm audit runs in CI." Today's
   # advisories are all transitive through `next` and not fixable from this
