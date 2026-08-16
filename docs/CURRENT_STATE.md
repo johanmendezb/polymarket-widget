@@ -7,16 +7,16 @@ health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
 active_epic: E2
-active_task: T2.6 (abstention gate) - final task of the E2 simulation engine dispatch
+active_task: none - T2.2 through T2.6 (the E2 simulation engine dispatch) are all DONE. E2 gate 1 (ADRs, PR, delivery note) has not run; that is the orchestrator's call, not this worker's.
 blocked_by: []
-last_completed: T2.5
-next_action: T2.5 (kellyFraction/suggestedSize) is done in src/simulation/kelly.ts, reproducing the q=0.90/p=0.95 worked illustration exactly (full 0.5, quarter 0.125, both capped to 2%). Only T2.6 (evaluateGate, 11 rules) remains to close out the E2 simulation engine dispatch.
+last_completed: T2.6
+next_action: The whole simulation engine (walkBook, computeFee, computeCostWaterfall/computeEdge, kellyFraction/suggestedSize, evaluateGate) is implemented, tested and green. One known gap, flagged rather than guessed at: gate rule 3 (INSUFFICIENT_DEPTH) implements only the "book cannot fill it" clause - STRATEGY_RESEARCH.md §C3 rule 3 names no numeric price-impact threshold, so the "moves the price beyond a threshold" clause was deliberately left unimplemented instead of shipping a fabricated number. Add a task if that clause is wanted. src/polymarket (T3.x) can now consume src/simulation for real fixtures.
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_134_UNIT (up from 121; T2.5 added 10 Kelly tests: the worked illustration at all three modes, the 2% hard cap, null on zero/negative edge, and a q=1.00 guard against division by zero. 100% branch coverage on src/simulation held.)
+tests_status: GREEN_154_UNIT (up from 134; T2.6 added 17 gate tests: the empty-baseline CONSIDER, one isolation test per rule of the 11 - each firing that rule and only that rule - and one three-rules-fire-together test. 100% branch coverage on src/simulation held across all six files.)
 deployment_status: NOT_DEPLOYED
 environment: staging_only_render
 awaiting_qa: []
