@@ -1,3 +1,27 @@
 // zod schemas, upstream client, mappers and cache.
-// May import: domain. Populated by T3.x.
-export {};
+// May import: domain.
+
+export {
+  isStaleableFailure,
+  UpstreamNotFoundError,
+  UpstreamRateLimitedError,
+  UpstreamShapeChangedError,
+  UpstreamUnavailableError,
+} from './errors';
+
+export {
+  ClobBookSchema,
+  ClobPriceHistorySchema,
+  GammaEventSchema,
+  GammaMarketSchema,
+  GammaSearchResponseSchema,
+  parseClobBook,
+  parseClobPriceHistory,
+  parseGammaMarket,
+  parseGammaSearchResponse,
+  type ClobBook,
+  type ClobPriceHistory,
+  type GammaEvent,
+  type GammaMarket,
+  type GammaSearchResponse,
+} from './schemas';
