@@ -126,6 +126,7 @@ Then, manually: load `/widget`, search a market, open it, price a bet. If the AI
 | Fee shows $0.00 on a politics market | Fee config fell back and got zeroed | Check `FeeConfig.source`. This is R-03. Block the release. |
 | Every forecast equals the market price | Anchoring collapse | Check the blind prompt assembly. This is R-01. |
 | Deploy succeeded but the URL 502s | Health check failing, or `PORT` not respected | Check Render logs. The app must bind `process.env.PORT`. |
+| Logs say "Ready", deploy says live, every request still 502s | The server bound to the container hostname instead of every interface | Look at the `Local:` line in the logs. If it names the pod (`srv-...-vrhhm:10000`) rather than `0.0.0.0`, the bind address is wrong. **Do not pass `process.env.HOSTNAME` to the server.** It is a POSIX variable holding the machine's *name*, not an address, and containers usually map that name to `127.0.0.1`, so the process listens on loopback and the proxy cannot reach it. `scripts/start.mjs` hardcodes `0.0.0.0` for this reason; `BIND_HOST` overrides it. Hit on the very first deploy, 2026-08-16. |
 
 ## Observability
 

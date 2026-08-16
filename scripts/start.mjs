@@ -20,7 +20,14 @@ const standaloneDir = path.join(root, '.next', 'standalone');
 const serverEntry = path.join(standaloneDir, 'server.js');
 
 const port = process.env.PORT ?? '3000';
-const hostname = process.env.HOSTNAME ?? '0.0.0.0';
+// Bind every interface. Deliberately NOT `process.env.HOSTNAME`: on Render, and
+// in containers generally, HOSTNAME is a POSIX variable holding the *machine's
+// name*, not an address to bind to. Next's standalone server passes it straight
+// to server.listen(), and because most images map that name to 127.0.0.1 in
+// /etc/hosts, the server ends up listening on loopback only. The process logs
+// "Ready", the deploy reports live, and every request through the proxy returns
+// 502. Use BIND_HOST if a narrower bind is ever genuinely wanted.
+const hostname = process.env.BIND_HOST ?? '0.0.0.0';
 
 const exists = async (p) => {
   try {
