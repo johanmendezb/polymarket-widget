@@ -44,6 +44,16 @@ if (await exists(path.join(root, 'public'))) {
   await cp(path.join(root, 'public'), path.join(standaloneDir, 'public'), { recursive: true });
 }
 
+// The runtime prompts are read from disk at request time (ADR-0018: they are
+// deliverables, not string literals). Copy them next to server.js so the
+// standalone tree is genuinely self-contained and does not rely on the rest of
+// the repository still being on the box.
+if (await exists(path.join(root, 'prompts', 'runtime'))) {
+  await cp(path.join(root, 'prompts', 'runtime'), path.join(standaloneDir, 'prompts', 'runtime'), {
+    recursive: true,
+  });
+}
+
 const child = spawn(process.execPath, [serverEntry], {
   stdio: 'inherit',
   env: { ...process.env, PORT: port, HOSTNAME: hostname },
