@@ -108,10 +108,11 @@ export default tseslint.config(
     },
   },
 
-  // Node-side scripts are plain ESM, run outside the bundler and are allowed
-  // to talk to the operator on stdout.
+  // Node-side scripts run outside the bundler and are allowed to talk to the
+  // operator on stdout. `record-fixtures.ts` runs under Node's type stripping,
+  // so it is TypeScript but still a plain Node script.
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'scripts/**/*.ts'],
     languageOptions: {
       globals: { console: 'readonly', process: 'readonly' },
     },

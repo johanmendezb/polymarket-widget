@@ -22,8 +22,8 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:live": "node scripts/not-implemented.mjs test:live T1.4",
-    "record-fixtures": "node scripts/not-implemented.mjs record-fixtures T1.4",
+    "test:live": "vitest run --config vitest.live.config.ts",
+    "record-fixtures": "node --experimental-strip-types scripts/record-fixtures.ts",
     "warm": "node scripts/not-implemented.mjs warm T1.3"
   },
   "dependencies": {
