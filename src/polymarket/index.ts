@@ -25,3 +25,11 @@ export {
   type GammaMarket,
   type GammaSearchResponse,
 } from './schemas';
+
+export {
+  mapMarket,
+  mapOrderBook,
+  mapPriceHistory,
+  mapSearchResults,
+  type PricePoint,
+} from './mappers';
