@@ -11,21 +11,41 @@ Everything here was verified against `docs.polymarket.com` and against live resp
 
 ## The five traps
 
-### 1. Order book asks arrive sorted DESCENDING
+### 1. Both sides of the order book arrive worst-price-first
 
-A live `GET /book` returns **both** `bids` and `asks` descending by price:
+A live `GET /book` orders each side from worst price to best. **The best level is the LAST element
+of each array.** Asks come back descending, bids ascending. Verified 2026-08-16 across eight live
+markets.
 
 ```
-asks: [{"price":"0.99"}, {"price":"0.98"}, ... , {"price":"0.45"}]
+asks: [{"price":"0.999"}, {"price":"0.998"}, ... , {"price":"0.008"}]   // worst -> best
+bids: [{"price":"0.001"}, {"price":"0.002"}, ... , {"price":"0.004"}]   // worst -> best
 ```
 
-The best ask is the **last** element upstream. Reading `asks[0]` prices a buy at 99 cents instead of 45.
+`mapOrderBook()` reverses **both** sides, so inside our domain `asks[0]` is the best (lowest) ask
+and `bids[0]` is the best (highest) bid. This is the most important line in the read path.
 
-`mapOrderBook()` reverses asks so that inside our domain `asks[0]` is always the best ask. This is the single most important line in the read path and it has the highest-priority test in the repository. If any fill price comes out near the top of the 0 to 1 range, check this first.
+Do not trust an older note claiming both arrays arrive descending — that was right about asks and
+wrong about bids.
 
-### 2. Token ids are strings, always
+Reading `asks[0]` unreversed prices a buy at 99 cents instead of 45, which is loud and easy to
+spot. **Reading `bids[0]` unreversed is the dangerous one**: it yields the worst bid in the book,
+so the spread reads as enormous, the wide-spread display rule and the abstention gate fire on
+perfectly healthy markets, and nothing throws. The crossed-book invariant I1 will not catch it
+either, because `0.008 >= 0.001` is true. The widget just abstains from everything and looks
+thoughtful. If the gate rejects far more markets than expected, check this before anything else.
+If any fill price comes out near the top of the 0 to 1 range, likewise.
 
-`clobTokenIds` values are 77-digit decimals that exceed `Number.MAX_SAFE_INTEGER`. `Number()`, `parseInt`, or a zod `.coerce.number()` on one silently corrupts it. Validate as `/^\d+$/` and carry it as a string everywhere.
+### 2. Token ids are strings, always, and arrive JSON-encoded
+
+`clobTokenIds` values are 77-digit decimals that exceed `Number.MAX_SAFE_INTEGER`. `Number()`,
+`parseInt`, or a zod `.coerce.number()` on one silently corrupts it. Validate as `/^\d+$/` and
+carry it as a string everywhere.
+
+Note the shape: on the Gamma market object, `clobTokenIds` is **a JSON-encoded string, not an
+array** — `"[\"7214...\", \"2714...\"]"`. It needs `JSON.parse` before the per-element `/^\d+$/`
+check. The same is true of `outcomes` and `outcomePrices`, and all three must parse to arrays of
+equal length.
 
 ### 3. Takers pay a fee, and most of the internet says otherwise
 
@@ -38,6 +58,13 @@ fee = C × feeRate × p × (1 − p)
 Rates run 0 to 0.07 by category. Geopolitics is genuinely free; crypto is 7 percent. At p = 0.50 in politics the fee is about **2 percent of stake**.
 
 **Never hardcode the rate.** Read it per market from `feesEnabled`, `feeType`, `feeSchedule`, `takerBaseFee` on the market object, or from the CLOB fee-rate endpoints. When falling back to a category table, set `FeeConfig.source = 'category-fallback'` and the UI must label the fee as estimated. See ADR-0009.
+
+**Expect those fields to be missing.** Checked 2026-08-16 against a live, liquid, high-volume
+market: `feesEnabled: false`, `feeType: null`, `takerBaseFee: null`. The category fallback is the
+common path, not the exception, so the "estimated" label fires routinely and must look deliberate
+rather than apologetic. Above all, **an absent field is not a zero rate** — mapping `null` to `0`
+puts a $0.00 fee line in the preview, which is precisely the failure ADR-0009 exists to prevent
+and is on the Definition of Done's rejection list under Domain.
 
 ### 4. Gamma prices are indicative, not executable
 

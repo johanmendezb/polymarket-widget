@@ -76,7 +76,7 @@ interface BookLevel {
 
 interface OrderBook {
   tokenId: string;
-  /** Sorted DESCENDING by price. bids[0] is the best bid. */
+  /** Sorted DESCENDING by price after normalization. bids[0] is the best bid. */
   bids: BookLevel[];
   /** Sorted ASCENDING by price after normalization. asks[0] is the best ask. */
   asks: BookLevel[];
@@ -91,18 +91,55 @@ interface OrderBook {
 
 ### The normalization contract
 
-Polymarket returns **both** `bids` and `asks` sorted descending by price. Verified against a live response on 2026-08-15:
+**Upstream orders both sides worst-price-first. The best level is the LAST element of each array.**
+
+An earlier revision of this document said both arrays arrive sorted descending. That is right for
+asks and wrong for bids. Re-verified 2026-08-16 against eight live markets by direct request to
+`clob /book`: asks came back descending in 8 of 8, bids ascending in 7 of 7 that had more than one
+level (the eighth had a single bid, which is trivially both).
 
 ```
-asks: [{"price":"0.99",...}, {"price":"0.98",...}, {"price":"0.97",...}, ... ,{"price":"0.45",...}]
+asks: [{"price":"0.999",...}, {"price":"0.998",...}, ... , {"price":"0.008",...}]   // worst -> best
+bids: [{"price":"0.001",...}, {"price":"0.002",...}, ... , {"price":"0.004",...}]   // worst -> best
 ```
 
-The best ask is the **last** element upstream. `mapOrderBook()` reverses asks so that within our domain `asks[0]` is always the best ask. Two tests are mandatory:
+So the rule is one rule, not two: **`mapOrderBook()` reverses both sides**, so that within our
+domain `asks[0]` is the best (lowest) ask and `bids[0]` is the best (highest) bid.
+
+Getting asks wrong prices every buy at 99 cents instead of 45, which is loud and obvious. Getting
+**bids** wrong is worse, because it is quiet: `bids[0]` would hold the worst bid in the book, the
+spread would read as enormous, the wide-spread display rule and the abstention gate would both
+fire on healthy markets, and invariant I1 would still pass — 0.008 >= 0.001 is true, so a crossed-
+book assertion cannot catch it. Nothing would throw. The widget would simply abstain from
+everything and look thoughtful doing it.
+
+Four tests are mandatory:
 
 1. Given a descending upstream asks array, `asks[0].price` is the minimum.
-2. Given the same fixture, `bestAsk(book) < bestBid(book)` is false, that is, the book is not crossed.
+2. Given an ascending upstream bids array, `bids[0].price` is the maximum.
+3. Given the same fixture, the book is not crossed: `bestAsk(book) >= bestBid(book)`.
+4. Given a fixture whose spread is known to be narrow, the computed spread is narrow. This is the
+   one that actually catches an unreversed bids array; test 3 cannot.
 
-If either fails, every price, every edge and every recommendation downstream is wrong. Treat this as the highest-value test in the repository.
+If any fails, every price, every edge and every recommendation downstream is wrong. Treat these as
+the highest-value tests in the repository.
+
+### The upstream wire shape
+
+`clob /book` is snake_case and the mapper does the rename. Observed keys, 2026-08-16:
+
+```
+asset_id  bids  asks  hash  last_trade_price  market  min_order_size  neg_risk  tick_size  timestamp
+```
+
+Two further things the zod schema and the client have to get right:
+
+- **`clobTokenIds` on the Gamma market object is a JSON-encoded string, not an array.** It arrives
+  as `"[\"7214...\",\"2714...\"]"` and needs `JSON.parse` before the per-element `/^\d+$/`
+  validation. `outcomes` and `outcomePrices` are encoded the same way, and all three must parse to
+  arrays of equal length — see §2's pairing rule.
+- **Send an explicit `User-Agent`.** A request with none returns `403 Forbidden` from the CLOB
+  host; the identical URL with an ordinary UA returns `200`. See OQ-10.
 
 ---
 
