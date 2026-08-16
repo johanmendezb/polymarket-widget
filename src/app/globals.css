@@ -1,0 +1,6 @@
+/* Tailwind v4 is CSS-first: no tailwind.config.ts, the theme lives here. */
+@import 'tailwindcss';
+
+:root {
+  color-scheme: light dark;
+}
