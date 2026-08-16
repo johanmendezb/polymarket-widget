@@ -1,0 +1,96 @@
+name: CI
+
+# Both triggers, deliberately: branch protection on `main` (T1.3) requires the
+# gate as a status check on pull requests, and `push` keeps every branch honest
+# before a PR exists.
+on:
+  push:
+  pull_request:
+
+# A second push to the same ref makes the first run's answer worthless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm typecheck
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm lint
+
+  # `pnpm test` is `vitest run`, which collects only test/** and src/**.
+  # `pnpm test:live` hits the live Polymarket API and is never invoked here,
+  # directly or transitively. If that ever changes it is a T1.4 bug, not
+  # something to paper over with an env guard in this workflow.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm build
+
+      # CLAUDE.md rule 7: the Anthropic key is server-side only. This step is
+      # what makes that enforceable rather than aspirational. It reads the
+      # built *client* bundle only — `.next/server` legitimately references the
+      # variable, `.next/static` never may.
+      - name: secret-leak
+        run: |
+          set -euo pipefail
+          if [ ! -d .next/static ]; then
+            echo "::error::.next/static is missing; the build produced no client bundle, so this check proved nothing."
+            exit 1
+          fi
+          if grep -ral -e 'ANTHROPIC' -e 'sk-ant-' .next/static; then
+            echo "::error::An Anthropic identifier reached the client bundle. Do not print or commit the value. See CLAUDE.md rule 7 and docs/08-operations/SECRETS.md."
+            exit 1
+          fi
+          echo "secret-leak: clean, no Anthropic identifier in .next/static."
+
+  # docs/04-architecture/SECURITY.md: "pnpm audit runs in CI." Today's
+  # advisories are all transitive through `next` and not fixable from this
+  # repository, so the full report is informational and only a *critical*
+  # advisory fails the gate. A job that is red on main from day one teaches
+  # nobody to read it.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Report advisories
+        run: pnpm audit || true
+      - name: Fail on a critical advisory
+        run: pnpm audit --audit-level=critical
+
+  # One check name for branch protection to require, instead of five that drift
+  # apart every time a job is added.
+  ci:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test, build, audit]
+    steps:
+      - name: Verify every job succeeded
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "::error::At least one CI job did not succeed."
+            exit 1
+          fi
+          echo "All CI jobs succeeded."
