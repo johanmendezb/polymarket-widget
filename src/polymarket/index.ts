@@ -33,3 +33,14 @@ export {
   mapSearchResults,
   type PricePoint,
 } from './mappers';
+
+export { TtlCache, type CacheResult, type TtlCacheOptions } from './cache';
+
+export {
+  fetchBook,
+  fetchMarket,
+  fetchPriceHistory,
+  fetchSearch,
+  type PriceHistoryParams,
+  type UpstreamCallResult,
+} from './client';

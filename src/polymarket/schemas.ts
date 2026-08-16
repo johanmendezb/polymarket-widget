@@ -14,7 +14,11 @@ const TOKEN_ID_PATTERN = /^\d+$/;
 
 function parseOrThrow<T>(schema: z.ZodType<T>, raw: unknown, context: string): T {
   const result = schema.safeParse(raw);
-  if (!result.success) throw new UpstreamShapeChangedError(context, result.error);
+  if (!result.success) {
+    const first = result.error.issues[0];
+    const field = first !== undefined ? first.path.join('.') || '(root)' : '(unknown)';
+    throw new UpstreamShapeChangedError(context, field, first?.message ?? 'unknown validation error');
+  }
   return result.data;
 }
 

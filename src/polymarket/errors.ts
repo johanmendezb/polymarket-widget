@@ -1,5 +1,3 @@
-import type { z } from 'zod';
-
 import type { ErrorCode } from '@/domain';
 
 /**
@@ -11,15 +9,17 @@ abstract class UpstreamError extends Error {
   abstract readonly code: ErrorCode;
 }
 
-/** zod parse failure at the upstream boundary. Names the offending field. */
+/**
+ * A zod parse failure at the upstream boundary, or any other point where the
+ * wire shape did not match what we expected (a non-JSON body, for example).
+ * Names the offending field so the structured log — and this error's
+ * `.field` — point straight at it, never a generic "shape changed" message.
+ */
 export class UpstreamShapeChangedError extends UpstreamError {
   readonly code = 'UPSTREAM_SHAPE_CHANGED' as const;
   readonly field: string;
 
-  constructor(context: string, zodError: z.ZodError) {
-    const first = zodError.issues[0];
-    const field = first !== undefined ? first.path.join('.') || '(root)' : '(unknown)';
-    const detail = first?.message ?? 'unknown validation error';
+  constructor(context: string, field: string, detail: string) {
     super(`${context}: upstream shape changed at field "${field}": ${detail}`);
     this.name = 'UpstreamShapeChangedError';
     this.field = field;
