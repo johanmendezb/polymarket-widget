@@ -7,16 +7,16 @@ health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
 active_epic: E2
-active_task: T2.4 (edge + cost waterfall), then T2.5/T2.6 in order
+active_task: T2.5 (Kelly sizing, P2), then T2.6 (abstention gate)
 blocked_by: []
-last_completed: T2.3
-next_action: T2.3 computeFee is done in src/simulation/fees.ts, and book-walk.ts's private duplicate of the fee formula from T2.2 has been deleted in favour of importing it - the formula now exists in exactly one place. Next is T2.4 (computeCostWaterfall + computeEdge), then T2.5 (Kelly, P2), then T2.6 (abstention gate).
+last_completed: T2.4
+next_action: T2.4 (computeCostWaterfall + computeEdge) is done in src/simulation/edge.ts, reproducing the ORDER_EXECUTION.md §3 worked waterfall exactly. Next is T2.5 (kellyFraction/suggestedSize, priority P2 - stop and report if running long before this), then T2.6 (evaluateGate, the 11-rule abstention gate).
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_113_UNIT (up from 99; T2.3 added 11 fee tests covering I5/I6, both ORDER_EXECUTION.md §2 worked examples, the 5dp-rounding floor, and category-rate independence. 100% branch coverage on src/simulation held.)
+tests_status: GREEN_121_UNIT (up from 113; T2.4 added 5 tests: the full worked waterfall reproduced to 5dp, unclamped negative edge, and two empty-book fallback cases. 100% branch coverage on src/simulation held.)
 deployment_status: NOT_DEPLOYED
 environment: staging_only_render
 awaiting_qa: []
