@@ -7,16 +7,16 @@ health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
 active_epic: E2
-active_task: T2.2/T2.3/T3.1/T4.1 (parallel, see below)
+active_task: T2.3 (fee model), then T2.4/T2.5/T2.6 in order
 blocked_by: []
-last_completed: T2.1
-next_action: T2.1 unblocks four parallel workers - src/simulation (T2.2 book walk, T2.3 fees), src/polymarket (T3.1 schemas/mappers), and any src/ui or src/ai scaffolding that only needs domain types. AGENT_PROTOCOL.md §8 forbids parallelising src/domain itself, which is why T2.1 ran alone.
+last_completed: T2.2
+next_action: T2.2 (walkBook, walkBookByBudget) is done in src/simulation/book-walk.ts. Continue the simulation engine serially - T2.3 computeFee next, extracting the fee formula out of book-walk.ts's private duplicate so it exists in exactly one place, then T2.4 (edge + cost waterfall), T2.5 (Kelly, P2), T2.6 (abstention gate).
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_72_UNIT (up from 9; T2.1 added 68 domain tests: branded-primitive boundaries, brand-crossing @ts-expect-error checks, 77-digit tokenId round-trip, OrderBook normalization contract, purity)
+tests_status: GREEN_99_UNIT (up from 72; T2.2 added 27 simulation tests: walkBook/walkBookByBudget invariants I2/I3/I4/I8/I9/I10, worked-example VWAP, a deterministic 200-iteration property test, and a purity test mirroring domain's. 100% branch coverage on src/simulation.)
 deployment_status: NOT_DEPLOYED
 environment: staging_only_render
 awaiting_qa: []
