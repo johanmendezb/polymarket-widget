@@ -1,0 +1,264 @@
+# POLYMARKET DOMAIN MODEL
+
+The canonical internal vocabulary. Every type here lives in `src/domain` and is pure: no I/O, no framework imports, no `any`.
+
+Upstream field names are deliberately **not** reused. The mapping from Gamma/CLOB responses to these types happens in exactly one place, `src/polymarket/mappers.ts`, guarded by zod schemas. If Polymarket changes a field, one file fails loudly.
+
+---
+
+## 1. Core entities
+
+```ts
+/** Probability in [0,1]. Branded so it cannot be confused with a price or a percentage. */
+type Probability = number & { readonly __brand: 'Probability' };
+
+/** Price per share in USDC, in [0,1]. Numerically equal to probability, semantically not. */
+type Price = number & { readonly __brand: 'Price' };
+
+/** A count of outcome shares. Each winning share pays exactly 1 USDC. */
+type Shares = number & { readonly __brand: 'Shares' };
+
+/** USDC amount. */
+type Usdc = number & { readonly __brand: 'Usdc' };
+```
+
+The branding is not ceremony. The single most common bug in this domain is multiplying a probability by a price, or displaying a price as a percentage without conversion. The compiler should catch it.
+
+```ts
+interface MarketOutcome {
+  label: string;              // "Yes", "No", "Zohran Mamdani"
+  tokenId: string;            // CLOB token id, a decimal string, NOT a number
+  indicativePrice: Price | null;  // from Gamma outcomePrices; indicative only
+}
+
+interface Market {
+  id: string;                 // Gamma numeric id, as string
+  slug: string;
+  conditionId: string;
+  question: string;
+  description: string;
+  resolutionSource: string | null;
+  resolutionCriteria: string | null;
+  outcomes: MarketOutcome[];  // index-aligned with the upstream arrays
+  negRisk: boolean;
+  acceptingOrders: boolean;
+  closed: boolean;
+  active: boolean;
+  endDate: string | null;     // ISO 8601
+  tickSize: Price;
+  minOrderSize: Usdc;
+  fees: FeeConfig;
+  liquidityUsd: number | null;
+  volume24hUsd: number | null;
+  bestBid: Price | null;      // indicative, from Gamma
+  bestAsk: Price | null;      // indicative, from Gamma
+  spread: Price | null;       // indicative, from Gamma
+  lastTradePrice: Price | null;
+  eventId: string | null;
+  eventTitle: string | null;
+  category: string | null;
+}
+```
+
+**`tokenId` is a string, always.** The live values exceed `Number.MAX_SAFE_INTEGER` (77-digit decimals). Parsing one as a number silently corrupts it. This is a mandatory unit test.
+
+**Gamma prices are indicative.** `bestBid` / `bestAsk` / `spread` from the market object are good enough to render a list, and are not good enough to price a fill. Anything the user is about to act on comes from a fresh `/book` call. The type system cannot enforce this, so the naming does: fields sourced from Gamma are documented as indicative and the UI labels them as such.
+
+---
+
+## 2. Order book
+
+```ts
+interface BookLevel {
+  price: Price;
+  size: Shares;
+}
+
+interface OrderBook {
+  tokenId: string;
+  /** Sorted DESCENDING by price. bids[0] is the best bid. */
+  bids: BookLevel[];
+  /** Sorted ASCENDING by price after normalization. asks[0] is the best ask. */
+  asks: BookLevel[];
+  tickSize: Price;
+  minOrderSize: Usdc;
+  negRisk: boolean;
+  lastTradePrice: Price | null;
+  fetchedAt: number;          // epoch ms, ours not theirs
+  upstreamTimestamp: string;  // theirs
+}
+```
+
+### The normalization contract
+
+Polymarket returns **both** `bids` and `asks` sorted descending by price. Verified against a live response on 2026-08-15:
+
+```
+asks: [{"price":"0.99",...}, {"price":"0.98",...}, {"price":"0.97",...}, ... ,{"price":"0.45",...}]
+```
+
+The best ask is the **last** element upstream. `mapOrderBook()` reverses asks so that within our domain `asks[0]` is always the best ask. Two tests are mandatory:
+
+1. Given a descending upstream asks array, `asks[0].price` is the minimum.
+2. Given the same fixture, `bestAsk(book) < bestBid(book)` is false, that is, the book is not crossed.
+
+If either fails, every price, every edge and every recommendation downstream is wrong. Treat this as the highest-value test in the repository.
+
+---
+
+## 3. Fees
+
+```ts
+interface FeeConfig {
+  enabled: boolean;
+  /** Taker fee rate, e.g. 0.04 for politics. Read per-market from the API. */
+  takerRate: number;
+  /** Makers pay nothing. Kept for completeness and future maker simulation. */
+  makerRate: number;
+  /** Human label for the UI, e.g. "Politics · 4% taker rate". */
+  displayLabel: string;
+  /** Where the rate came from, so the UI can be honest about it. */
+  source: 'market-object' | 'clob-fee-rate-endpoint' | 'category-fallback';
+}
+```
+
+The formula lives in `src/simulation/fees.ts` as a pure function. See `03-domain/ORDER_EXECUTION.md` §2.
+
+`source: 'category-fallback'` must cause the UI to label the fee as estimated. We do not silently substitute a number and present it as fact.
+
+---
+
+## 4. Simulation types
+
+```ts
+type Side = 'BUY';   // v1 only supports buying an outcome. Selling is post-challenge.
+
+interface FillLeg {
+  price: Price;
+  shares: Shares;
+}
+
+interface FillEstimate {
+  requested: { kind: 'shares'; value: Shares } | { kind: 'usdc'; value: Usdc };
+  legs: FillLeg[];
+  sharesFilled: Shares;
+  /** Volume-weighted average price across the legs. */
+  averagePrice: Price;
+  /** asks[0].price at the time of the walk. */
+  topOfBookPrice: Price;
+  /** averagePrice - topOfBookPrice. Zero when the whole order fills at top of book. */
+  priceImpact: Price;
+  grossCost: Usdc;            // sharesFilled * averagePrice
+  fee: Usdc;
+  totalCost: Usdc;            // grossCost + fee
+  payoutIfWin: Usdc;          // sharesFilled * 1.00
+  netProfitIfWin: Usdc;       // payoutIfWin - totalCost
+  /** True when the book could not absorb the full request. */
+  partial: boolean;
+  maxFillableShares: Shares;
+  bookFetchedAt: number;
+}
+```
+
+**`priceImpact`, not `slippage`.** These are different things and conflating them is a named anti-pattern. Price impact is the gap between top of book and your volume-weighted fill, caused by your own order size. Slippage is the drift between quote time and settlement time. In a simulation there is no settlement, therefore **there is no slippage**, therefore we do not ship a slippage tolerance control. See `02-research/UX_RESEARCH.md` §1.1 and §6.17.
+
+```ts
+interface SimulatedPosition {
+  id: string;
+  marketId: string;
+  marketQuestion: string;
+  outcomeLabel: string;
+  tokenId: string;
+  shares: Shares;
+  entryAveragePrice: Price;
+  feePaid: Usdc;
+  totalCost: Usdc;
+  payoutIfWin: Usdc;
+  createdAt: number;
+  /** Always true. Exists so the type makes the simulation explicit at every use site. */
+  simulated: true;
+}
+```
+
+---
+
+## 5. AI types
+
+```ts
+type Confidence = 'low' | 'medium' | 'high';
+
+interface EvidenceItem {
+  claim: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  publishedAt: string | null;   // null is allowed and must be shown as "undated"
+  supports: 'yes' | 'no' | 'context';
+}
+
+interface Forecast {
+  tokenId: string;
+  outcomeLabel: string;
+  /** Median of k blind samples, elicited WITHOUT the market price in context. */
+  blindProbability: Probability;
+  /** Interquartile range across samples. Feeds the gate. */
+  dispersion: number;
+  samples: Probability[];
+  /** Optional second elicitation WITH the price shown. Diagnostic only. */
+  anchoredProbability: Probability | null;
+  /** blindProbability blended with the market. This is what we display as "AI estimate". */
+  blendedProbability: Probability;
+  blendWeight: number;          // fixed and pre-registered, not tuned on outcomes
+  marketProbability: Probability;
+  confidence: Confidence;
+  evidence: EvidenceItem[];
+  risks: string[];
+  modelId: string;
+  promptVersion: string;
+  createdAt: string;            // ISO 8601
+}
+
+type GateReason =
+  | 'EDGE_BELOW_COST'
+  | 'SPREAD_TOO_WIDE'
+  | 'INSUFFICIENT_DEPTH'
+  | 'EXTREME_PRICE_BAND'
+  | 'HORIZON_TOO_LONG'
+  | 'MARKET_TOO_CERTAIN'
+  | 'THIN_EVIDENCE'
+  | 'HIGH_MODEL_DISPERSION'
+  | 'AMBIGUOUS_RESOLUTION'
+  | 'NEAR_EXPIRY_SPORTS'
+  | 'MARKET_NOT_ACCEPTING_ORDERS';
+
+interface Recommendation {
+  verdict: 'CONSIDER' | 'NO_BET';
+  reasons: GateReason[];        // populated for NO_BET, may be non-empty for CONSIDER as warnings
+  estimatedEdge: number;        // blendedProbability - (averagePrice + feePerShare). May be negative.
+  suggestedFractionOfBankroll: number | null;  // quarter-Kelly, capped. null on NO_BET.
+  forecast: Forecast;
+  fill: FillEstimate;
+}
+```
+
+Every `GateReason` maps to a cited threshold in `05-ai/AI_SYSTEM.md` §4. A reason code with no citation is not allowed to ship.
+
+---
+
+## 6. Invariants
+
+These are property-test targets, not prose.
+
+| # | Invariant |
+|---|---|
+| I1 | `asks[0].price >= bids[0].price` for any normalized book (never crossed) |
+| I2 | `sum(legs[].shares) === sharesFilled` |
+| I3 | `averagePrice === sum(legs[].price * legs[].shares) / sharesFilled` within float tolerance |
+| I4 | `averagePrice >= topOfBookPrice` for a BUY, always |
+| I5 | `fee === sharesFilled * takerRate * averagePrice * (1 - averagePrice)`, rounded to 5dp |
+| I6 | `fee` is maximised at `averagePrice === 0.5` and approaches 0 at both extremes |
+| I7 | `totalCost === grossCost + fee` |
+| I8 | `partial === (sharesFilled < requestedShares)` |
+| I9 | A request larger than total book depth yields `partial: true` and never throws |
+| I10 | An empty book yields `sharesFilled === 0`, `partial: true`, and no division by zero |
+| I11 | Every `tokenId` round-trips as a string with no precision loss |
+| I12 | `blindProbability` is computed by a code path that never receives the market price |

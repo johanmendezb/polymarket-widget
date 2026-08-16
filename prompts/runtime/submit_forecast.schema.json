@@ -1,0 +1,60 @@
+{
+  "name": "submit_forecast",
+  "description": "Submit a calibrated probability estimate with dated evidence.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "probability": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Your probability that the stated outcome occurs."
+      },
+      "reasoning_summary": {
+        "type": "string",
+        "maxLength": 400,
+        "description": "At most 60 words. What drove the estimate."
+      },
+      "evidence": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "properties": {
+            "claim": { "type": "string", "maxLength": 240 },
+            "source_url": { "type": "string" },
+            "source_title": { "type": "string" },
+            "published_at": {
+              "type": ["string", "null"],
+              "description": "ISO date, or null if the source is undated. Null is displayed as 'undated'. Do not guess a date."
+            },
+            "supports": { "type": "string", "enum": ["yes", "no", "context"] }
+          },
+          "required": ["claim", "source_url", "source_title", "supports"]
+        }
+      },
+      "risks": {
+        "type": "array",
+        "maxItems": 4,
+        "items": { "type": "string" },
+        "description": "What would make this estimate wrong."
+      },
+      "resolution_ambiguity": {
+        "type": "string",
+        "enum": ["low", "medium", "high"],
+        "description": "How clearly the resolution criteria determine an outcome."
+      },
+      "insufficient_evidence": {
+        "type": "boolean",
+        "description": "True if you could not find enough relevant dated sources to form an estimate. This is a correct and useful answer."
+      }
+    },
+    "required": [
+      "probability",
+      "reasoning_summary",
+      "evidence",
+      "resolution_ambiguity",
+      "insufficient_evidence"
+    ]
+  }
+}
