@@ -138,8 +138,14 @@ Two further things the zod schema and the client have to get right:
   as `"[\"7214...\",\"2714...\"]"` and needs `JSON.parse` before the per-element `/^\d+$/`
   validation. `outcomes` and `outcomePrices` are encoded the same way, and all three must parse to
   arrays of equal length — see §2's pairing rule.
-- **Send an explicit `User-Agent`.** A request with none returns `403 Forbidden` from the CLOB
-  host; the identical URL with an ordinary UA returns `200`. See OQ-10.
+- **Send an explicit `User-Agent`, and never fall back to a library default.** `Python-urllib/<version>`
+  is blocklisted by the CLOB host: `Python-urllib/3.9` and `Python-urllib/3.11` both return
+  `403 Forbidden`, while `python-requests`, `curl`, and **no `User-Agent` at all** all return `200`.
+  So it is not a missing-header check and it is not a broad scraper filter — it is one narrow
+  pattern, and it happens to be exactly the string Python's standard library sends by default.
+  Node's `fetch` is unaffected, so naming ourselves costs nothing and removes the class of problem.
+  The failure mode this prevents is nasty: any Python-based tooling would 403 while every manual
+  `curl` check passes, which reads as an upstream outage rather than a client-side own goal. See OQ-10.
 
 ---
 

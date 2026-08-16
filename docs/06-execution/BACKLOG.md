@@ -29,12 +29,14 @@ dependencies: []
 **Objective.** A Next.js 15 App Router + TypeScript strict project that builds, typechecks, lints and tests.
 
 **Requirements.**
-- pnpm. Node 22. Next.js 15 App Router. TypeScript `strict: true`, `noUncheckedIndexedAccess: true`.
-- Tailwind configured. Vitest configured with a `src` alias `@/`.
+- pnpm. Node 22 (`.nvmrc`, `engines.node: ">=22"` so a newer local Node is not blocked). Next.js 15 App Router, `output: 'standalone'`. TypeScript `strict: true`, `noUncheckedIndexedAccess: true`.
+- Tailwind v4 configured. Vitest configured with a `src` alias `@/`.
 - Directory skeleton exactly as `04-architecture/ARCHITECTURE.md` §3, each directory containing an `index.ts` barrel.
 - ESLint with `import/no-restricted-paths` implementing the boundary table in that same section, plus a rule banning `dangerouslySetInnerHTML`.
-- Scripts: `dev`, `build`, `start`, `typecheck`, `lint`, `test`, `test:e2e`.
-- `/api/health` returning `{ status, commit, uptimeSeconds }` where `commit` reads `RENDER_GIT_COMMIT` or falls back to `"dev"`.
+- Scripts: `dev`, `build`, `start`, `typecheck`, `lint`, `test`, `test:e2e`. Plus `warm`, `test:live` and `record-fixtures` as exit-0 stubs, so T1.3 and T1.4 fill in a script contract rather than inventing one.
+- `/api/health` returning `{ status, commit, uptimeSeconds }` where `commit` reads `RENDER_GIT_COMMIT` or falls back to `"dev"`. No `upstream` or `ai` field here; those are T1.3 and T7.2.
+- The server reads `process.env.PORT`. Render assigns it and a hardcoded 3000 fails the health check. This is the one named risk in E1.
+- Every dependency the project will ever need is installed in this task, not incrementally. Four workers build `simulation`, `polymarket`, `ui` and `ai` in parallel afterwards and `package.json` is the one file they would all collide on.
 
 **Acceptance criteria.**
 1. `pnpm install && pnpm build` succeeds from a clean clone.
@@ -44,7 +46,12 @@ dependencies: []
 
 **Tests required.** One trivial Vitest test. One ESLint boundary assertion (documented in the PR description if not automatable).
 
-**Files expected.** `package.json`, `tsconfig.json`, `eslint.config.mjs`, `vitest.config.ts`, `tailwind.config.ts`, `src/app/api/health/route.ts`, directory barrels.
+**Files expected.** `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `vitest.config.ts`, `postcss.config.mjs`, `src/app/globals.css`, `src/app/api/health/route.ts`, directory barrels.
+
+> **Corrected during T1.1.** This line originally listed `tailwind.config.ts`. Tailwind v4 is
+> CSS-first: there is no `tailwind.config.ts`. The theme lives in `src/app/globals.css` behind
+> `@import 'tailwindcss'`, and the only build wiring is `@tailwindcss/postcss` in
+> `postcss.config.mjs`. Do not create a `tailwind.config.ts`; v4 ignores it.
 
 ---
 
@@ -63,6 +70,12 @@ dependencies: [T1.1]
 **Requirements.** Node 22, pnpm cache. Jobs: typecheck, lint, test, build. Plus a `secret-leak` step that greps `.next/static` for `ANTHROPIC` and for the key prefix and fails on a match.
 
 **Acceptance criteria.** Workflow green on push. A deliberately introduced type error fails the run. A deliberately introduced `NEXT_PUBLIC_ANTHROPIC_API_KEY` fails the secret-leak step.
+
+**Correction, made while implementing.** The `secret-leak` step as specified above cannot meet its own third acceptance criterion, and this was verified against a real build rather than reasoned about. Next inlines `NEXT_PUBLIC_*` references at build time as the **value**: `process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY` compiles down to the literal string it held, so the variable **name never appears in `.next/static` at all**. Grepping the bundle for `ANTHROPIC` therefore sees nothing, and the key-prefix grep only catches the leak when the value happens to be shaped like a real key — precisely the condition you cannot depend on, and one you must not reproduce in a test.
+
+So `secret-leak` is two halves. The bundle grep stays exactly as specified, because it is what catches a real key that reached the browser. Added to it is a **name-level scan** of `src/` and `.env.example`, plus the build environment, for any `NEXT_PUBLIC_*ANTHROPIC*` variable. The name is only visible before the build, so before the build is where it has to be caught. The environment scan reads names only and never prints a value.
+
+**Also implemented, and not in the original requirements:** `pnpm audit` per `04-architecture/SECURITY.md` (informational report, gating only on a *critical* advisory — every advisory today is transitive through `next` and unfixable here, and a job that is red on `main` from day one is a job nobody reads); triggers on `pull_request` as well as `push`, because the branch protection T1.3 enables applies to PRs; and a single aggregate `ci` job that all others feed into, so branch protection has one stable check name to require instead of five that drift as jobs are added. No E2E job — Playwright browser provisioning in CI belongs to E6.
 
 ---
 
