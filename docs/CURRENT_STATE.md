@@ -7,17 +7,17 @@ health: GREEN
 deadline: T0 + 48h
 t0: 2026-08-15
 active_epic: E1
-active_task: T1.2
+active_task: T1.3
 blocked_by: []
-last_completed: T1.1
-next_action: T1.2 (CI pipeline) and T1.3 (Render staging) can start; T1.4 (live-API contract spike) is unblocked and should land before any UI work.
+last_completed: T1.2
+next_action: T1.3 (Render staging) and T1.4 (live-API contract spike) are unblocked. T1.3 should also enable branch protection on `main` requiring the `ci` status check.
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
 tests_status: GREEN_9_UNIT_1_E2E
-deployment_status: NOT_DEPLOYED
+deployment_status: NOT_DEPLOYED_CI_GREEN
 environment: staging_only_render
 awaiting_qa: []
 assumed_accepted: []
@@ -33,6 +33,10 @@ Fourteen ADRs are written and accepted. The product is scoped, the architecture 
 
 **The scaffold exists.** T1.1 landed on `epic/e1-foundation`: Next.js 15 App Router, TypeScript strict with `noUncheckedIndexedAccess`, Tailwind v4, Vitest, Playwright, the six module barrels, and `/api/health`. The import-boundary rule is real, not aspirational: a probe file importing `@/polymarket` from `src/domain` fails `pnpm lint`, and five boundary assertions run in CI as unit tests.
 
+**CI exists.** T1.2 landed on `e1-ci`: GitHub Actions runs typecheck, lint, test, build and `pnpm audit` in parallel on every push and every pull request, behind a single aggregate `ci` job so branch protection has one stable check name to require. The gate is proven, not assumed: a deliberately introduced type error turned the run red, and a deliberately introduced `NEXT_PUBLIC_ANTHROPIC_API_KEY` turned the `secret-leak` step red. Both were reverted.
+
+**The secret-leak check had to be widened, and this matters beyond T1.2.** Next inlines `NEXT_PUBLIC_*` references at build time as the *value*, so the variable name never reaches `.next/static`. Grepping the bundle for `ANTHROPIC` - which is what the contract specified and what everyone assumes works - cannot see a `NEXT_PUBLIC_ANTHROPIC_API_KEY` leak at all unless the value happens to be shaped like a real key. The bundle grep stays, because it catches a real key in the browser; alongside it there is now a name-level scan of `src/`, `.env.example` and the build environment. Anyone who later assumes the bundle grep alone enforces CLAUDE.md rule 7 will be wrong.
+
 No feature code exists yet. That is deliberate and correct for this point in the plan.
 
 ## What changed since the last update
@@ -45,12 +49,13 @@ No feature code exists yet. That is deliberate and correct for this point in the
 | T0 + 1h | Ideation funnel run over five candidate concepts. "Second Opinion" selected. See `01-product/PRD.md` §2. |
 | T0 + 2h | Knowledge layer written: charter, PRD, MVP scope, architecture, domain model, AI system, evaluation plan, roadmap, backlog, test strategy, ADRs. |
 | T0 + 4h | T1.1 done. Scaffold builds, typechecks, lints clean and runs 9 unit tests plus 1 e2e smoke test. Every dependency the project will need is installed up front so the four parallel module workers do not collide on `package.json`. |
+| T0 + 5h | T1.2 done. CI green on push and pull request. Both failure paths proven with real red runs and reverted. `secret-leak` widened to a name-level scan after the bundle grep was shown unable to see a `NEXT_PUBLIC_` leak. |
 | T0 + 3h | Owner feedback round 1. Railway replaced by Render staging (ADR-0015). Secret handling fixed to human-entered only (ADR-0016). Per-epic QA acceptance gate added (ADR-0017). Prompts made first-class deliverables (ADR-0018). Two repo-local skills added. |
 
 ## What the next agent should do
 
 1. Read `ACTIVE_CONTEXT.md`.
-2. Execute `T1.2` (CI pipeline) from `06-execution/BACKLOG.md`. `T1.3` and `T1.4` are also unblocked and depend only on `T1.1`.
+2. Execute `T1.3` (Render staging) from `06-execution/BACKLOG.md`. `T1.4` (live-API contract spike) is also unblocked. When T1.3 enables branch protection on `main`, the status check to require is named **`ci`** - the aggregate job, not the five individual ones.
 3. Update this file's `active_task` and `last_completed` when the task passes its acceptance criteria.
 
 ## Update protocol
