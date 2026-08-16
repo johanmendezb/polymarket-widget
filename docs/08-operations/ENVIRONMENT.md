@@ -6,11 +6,23 @@
 
 | | |
 |---|---|
-| Name | `polymarket-widget-staging` |
+| Name | `polymarket-widget` |
+| Service id | `srv-da14g38jo6nc73fr52j0`, region Ohio, free plan |
 | Host | Render, free web service |
 | Deploys from | `main`, automatically on push |
-| URL | _record at T1.3_ |
-| Health check | `/api/health` |
+| URL | https://polymarket-widget.onrender.com |
+| Health check | `/api/health` (endpoint live; the Render-side health check **path** is still unset — see below) |
+| Build | `corepack enable && pnpm install --frozen-lockfile && pnpm build` |
+| Start | `pnpm start` |
+| Node | pinned by `NODE_VERSION=22` |
+
+The service is named `polymarket-widget`, not `polymarket-widget-staging` as originally
+specified. There is one environment and no production, so the bare name is not ambiguous, and
+it keeps the URL short for a reviewer. Recorded here rather than silently diverging.
+
+**Two settings the Render MCP cannot reach**, so they are owner actions in the dashboard: the
+health check **path**, and `ANTHROPIC_API_KEY`. The MCP can create a service and set
+environment variables, but exposes no update-service call. Neither blocks anything before E5.
 
 Because `main` deploys automatically and there is no production to shield, **the pull request is the buffer**. An epic that has not passed QA acceptance never reaches the staging URL. See ADR-0017 and `06-execution/DELIVERY_PROTOCOL.md`.
 
