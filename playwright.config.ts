@@ -10,7 +10,10 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL, trace: 'on-first-retry' },
+  // Locale and timezone are pinned so `toLocaleString`/`toLocaleDateString` formatting
+  // (share counts, dates) is identical wherever this runs — a CI runner's default
+  // locale/timezone is not something T6.1's "fully deterministic" claim can depend on.
+  use: { baseURL, trace: 'on-first-retry', locale: 'en-US', timezoneId: 'UTC' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: `pnpm build && PORT=${port} pnpm start`,

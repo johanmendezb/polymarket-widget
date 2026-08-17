@@ -92,6 +92,38 @@ jobs:
           if [ "$failed" -ne 0 ]; then exit 1; fi
           echo "secret-leak: clean. No Anthropic identifier in .next/static, and no NEXT_PUBLIC_ Anthropic variable in source or environment."
 
+  # T1.2 deliberately left Playwright out of CI ("browsers in CI were E6's
+  # problem"). T6.1/T6.2: fully deterministic against fixture-derived mocks
+  # (`e2e/fixtures/mockApi.ts` intercepts every relative fetch the widget
+  # makes, in the browser, before it leaves — ADR-0011), so this job never
+  # touches the live Polymarket API and never flakes for that reason.
+  #
+  # Only the Chromium browser binary is cached (ADR-0011: Chromium only).
+  # `playwright install-deps` (the OS-level apt packages Chromium needs) is
+  # cheap and reinstalled every run regardless of cache state, since
+  # `actions/cache` does not cover system libraries and a stale runner image
+  # is not something a browser-binary cache key can detect.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Resolve installed Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright Chromium download
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+      - name: Install Chromium's OS dependencies
+        run: pnpm exec playwright install-deps chromium
+      - run: pnpm test:e2e
+
   # docs/04-architecture/SECURITY.md: "pnpm audit runs in CI." Today's
   # advisories are all transitive through `next` and not fixable from this
   # repository, so the full report is informational and only a *critical*
@@ -112,7 +144,7 @@ jobs:
   ci:
     if: always()
     runs-on: ubuntu-latest
-    needs: [typecheck, lint, test, build, audit]
+    needs: [typecheck, lint, test, build, e2e, audit]
     steps:
       - name: Verify every job succeeded
         run: |
