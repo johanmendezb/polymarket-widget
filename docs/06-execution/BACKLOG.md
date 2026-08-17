@@ -597,6 +597,32 @@ priority: P2
 
 **Acceptance criteria.** Manifest and hash committed. Re-running the hash reproduces it. Selection rule is code, not judgment. Horizon selection is disclosed in the report as a deliberate choice.
 
+> **Corrected during T8.1.** Implemented against a narrower dispatch brief than the field list
+> above; the differences, so a later implementer does not read this as done and move on:
+>
+> - **Manifest fields.** Recorded: market id, question, token id, outcome label, market
+>   price at freeze (bid/ask midpoint only, not full book depth), the full `Forecast` (blind/
+>   anchored/blended probabilities, dispersion, all samples, promptVersion, modelId), `k`, gate
+>   verdict and reason codes, and the freeze timestamp. **Not recorded**: resolution criteria,
+>   book depth beyond top-of-book, close date as a separate field (it is on the fetched `Market`
+>   but not copied into the entry), category, fee rate, and suggested Kelly size. Adding these is
+>   cheap (they are already computed inside `composeForecastRecommendation`'s `Recommendation`)
+>   and would be a small follow-up task, not a redesign.
+> - **Market discovery.** `GET gamma /markets/keyset?tag_id=&closed=false&after_cursor=` (the
+>   `polymarket-domain` skill's own recommended bulk-listing endpoint) was not used because it
+>   could not be verified live from this environment (no outbound network — see the T8.1/T8.3
+>   delivery note). Candidate discovery instead reuses `fetchSearch`, the one upstream read this
+>   project has already verified end to end, against a small pre-registered set of seed queries
+>   (`src/app/api/_manifest/marketSource.ts`). This is still mechanical (the query list is a
+>   constant, not a per-run choice) but is a narrower universe than a full unresolved-market
+>   listing would give. Switching to the keyset endpoint once it is verified against live traffic
+>   is a good follow-up and should be a small change — `MarketCandidateSource` is the seam.
+> - **New dependency.** `tsx` was added as a devDependency. `src/ai`'s forecast pipeline and
+>   `src/polymarket`'s client are written with the `@/` path alias and extensionless relative
+>   imports that only a bundler-aware resolver handles; plain `node --experimental-strip-types`
+>   (`record-fixtures.ts`'s approach) cannot import them. `tsx` resolves `tsconfig.json`'s `paths`
+>   correctly and was verified to do so before use.
+
 ---
 
 ## T8.2 - Resolution-free diagnostics
@@ -628,6 +654,24 @@ priority: P3
 ```
 
 **Requirements.** `pnpm resolve` fills outcomes into the manifest for markets that have resolved, computes paired Brier vs the frozen market price with a 95% CI, and emits the report template from `05-ai/EVALUATION.md` §B6.6, including the required sentence stating that the current N is insufficient.
+
+> **Corrected during T8.3.** Implemented against a narrower dispatch brief: `pnpm resolve`
+> verifies the manifest hash before touching anything, refuses loudly on a mismatch, and appends
+> `{ marketId, tokenId, outcome, resolvedAt }` rows to a separate, append-only
+> `evaluation/OUTCOMES.jsonl` — proven never to mutate `MANIFEST.jsonl` or its hash
+> (`test/app/api/_manifest/persistence.test.ts`). **Not implemented**: the paired Brier score,
+> its 95% CI, and the §B6.6 report template. Those need real resolved outcomes to be meaningful
+> and were out of scope for this dispatch; they are a natural follow-up once `pnpm freeze` has
+> been run for real (it has not — see the delivery note) and some entries have resolved.
+>
+> **Resolved-outcome inference is a documented limitation.** The `Market` domain type (T2.1/T3.2)
+> carries no authoritative "winning outcome" field — that was outside T3's read-path scope. This
+> task infers the outcome from the settled `indicativePrice` on the matching `MarketOutcome`
+> once `market.closed === true`: `>= 0.98` -> `YES`, `<= 0.02` -> `NO`, otherwise `ANNULLED`
+> (`src/app/api/_manifest/resolve.ts`, `inferResolvedOutcome`). This has not been verified
+> against a real resolved market from this environment (no outbound network). If Polymarket
+> exposes a more authoritative resolved-outcome field, prefer it over this inference in a
+> follow-up.
 
 ---
 

@@ -24,7 +24,9 @@
     "test:e2e": "playwright test",
     "test:live": "vitest run --config vitest.live.config.ts",
     "record-fixtures": "node --experimental-strip-types scripts/record-fixtures.ts",
-    "warm": "node scripts/warm.mjs"
+    "warm": "node scripts/warm.mjs",
+    "freeze": "tsx scripts/freeze.ts",
+    "resolve": "tsx scripts/resolve.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
@@ -52,6 +54,7 @@
     "jsdom": "^28.0.1",
     "msw": "^2.11.6",
     "tailwindcss": "^4.1.16",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
     "vitest": "^3.2.4"
