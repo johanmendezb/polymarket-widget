@@ -14,7 +14,7 @@ What the application actually sends to Claude. **These files are loaded at build
 |---|---|---|---|---|
 | `runtime/blind-v1.md` | blind-v1 | The forecast. Elicited with the market price **structurally absent** from the input type. | 5 | `src/ai/prompts.ts`, `POST /api/ai/forecast` |
 | `runtime/anchored-v1.md` | anchored-v1 | Diagnostic only. Same prompt with the price added, to measure how much the estimate moves. Never displayed as the estimate, never enters the blend. | 1 | same |
-| `runtime/rank-v1.md` | rank-v1 | P2, may be cut. Ranks candidate markets by where an outside view is most likely to be informative. Deliberately given no prices. | 1 | `POST /api/ai/rank` |
+| `runtime/rank-v1.md` | rank-v1 | P2. Designed to rank candidate markets by where an outside view is most likely to be informative, deliberately given no prices. **Not wired into this build**: no `/api/ai/rank` route exists, and no code path calls `loadPromptFile('rank-v1.md')` or emits `promptVersion: 'rank-v1'`. Kept in the directory as a pre-registered design, not a live artifact. | - | none |
 | `runtime/submit_forecast.schema.json` | - | The forced tool schema. `tool_choice` requires it; prose responses are not accepted. | - | all forecast calls |
 
 ### Versioning
