@@ -49,6 +49,8 @@ pnpm -v    # 10.x
 
 pnpm install
 cp .env.example .env.local     # then add your Anthropic key
+                               # NOTE: gitignored, so it lives in ONE checkout.
+                               # Running from a git worktree? Copy it there too.
 pnpm dev                       # http://localhost:3000
 ```
 
@@ -137,6 +139,7 @@ Then, manually: load `/widget`, search a market, open it, price a bet. If the AI
 | Fill prices near 0.99 on every market | Asks normalization regression | Check `mapOrderBook`. This is R-04. |
 | Fee shows $0.00 on a politics market | Fee config fell back and got zeroed | Check `FeeConfig.source`. This is R-03. Block the release. |
 | Every forecast equals the market price | Anchoring collapse | Check the blind prompt assembly. This is R-01. |
+| `ANTHROPIC_API_KEY is not configured`, but the key is in `.env.local` | Either the dev server predates the file, or you are running from a **git worktree** | `.env.local` is gitignored, so it exists only in the checkout where you created it. A worktree is a separate directory and does not inherit it. Copy it into the worktree you are running from, then **restart the dev server** — Next reads `.env.local` at startup, so adding the key under a running process changes nothing. |
 | Deploy succeeded but the URL 502s | Health check failing, or `PORT` not respected | Check Render logs. The app must bind `process.env.PORT`. |
 | Logs say "Ready", deploy says live, every request still 502s | The server bound to the container hostname instead of every interface | Look at the `Local:` line in the logs. If it names the pod (`srv-...-vrhhm:10000`) rather than `0.0.0.0`, the bind address is wrong. **Do not pass `process.env.HOSTNAME` to the server.** It is a POSIX variable holding the machine's *name*, not an address, and containers usually map that name to `127.0.0.1`, so the process listens on loopback and the proxy cannot reach it. `scripts/start.mjs` hardcodes `0.0.0.0` for this reason; `BIND_HOST` overrides it. Hit on the very first deploy, 2026-08-16. |
 
