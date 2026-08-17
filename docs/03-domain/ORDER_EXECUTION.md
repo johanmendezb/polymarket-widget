@@ -80,12 +80,18 @@ Implementation notes:
 **Worked example.** 40 shares of a politics market at an average fill of 62.4 cents:
 
 ```
-fee = 40 × 0.04 × 0.624 × 0.376 = 0.37536  →  $0.375
+fee = 40 × 0.04 × 0.624 × 0.376 = 0.3753984  →  rounds to $0.37540 at the stated 5dp
 gross = 40 × 0.624 = $24.96
-total = $25.34
+total = $25.3354  →  $25.34 to the cent
 payout if it resolves YES = $40.00
-net profit = $14.66
+net profit = $14.6646  →  $14.66 to the cent
 ```
+
+> **Corrected during T2.3.** This example originally showed the fee step as `= 0.37536 →
+> $0.375`. `0.624 × 0.376 = 0.234624`, so `40 × 0.04 × 0.234624 = 0.3753984`, which rounds to
+> `0.37540` under this section's own 5dp rule - not `0.37536` and not `$0.375`. The `gross`,
+> `total`, `payout` and `net profit` lines were unaffected (they already matched, to the cent,
+> the more precise figure). `computeFee`'s test suite asserts the corrected `0.3754` value.
 
 **Worked example at the fee maximum.** 100 shares of a politics market at 50 cents:
 

@@ -114,7 +114,18 @@ export default tseslint.config(
   {
     files: ['scripts/**/*.mjs', 'scripts/**/*.ts'],
     languageOptions: {
-      globals: { console: 'readonly', process: 'readonly' },
+      // Web-standard globals that Node 22 provides natively. Listed explicitly
+      // rather than pulled in as a broad `globals.node` set, so that anything
+      // genuinely undefined in a script still fails the lint.
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        AbortSignal: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+      },
     },
     rules: { 'no-console': 'off' },
   },
