@@ -161,12 +161,26 @@ export async function composeForecastRecommendation(
     timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   };
 
+  // The anchored call is a diagnostic, not part of the answer: it re-asks the
+  // question with the price visible, purely to measure how far the estimate
+  // moves (risk R-01). It is genuinely useful and it is also a full extra model
+  // call on every single forecast, which is a sixth of the bill at k=5 for
+  // something the user never sees as an estimate. `AI_ANCHORED=0` turns it off;
+  // the panel then simply omits the anchoring warning rather than showing a
+  // wrong one.
+  const anchoredEnabled = process.env.AI_ANCHORED?.trim() !== '0';
+
   const [blindResult, anchoredProbability] = await Promise.all([
     runBlindSampling(blindInput, samplingConfig, k),
-    runAnchoredDiagnostic(toAnchoredPromptInput(blindInput, marketProbability), samplingConfig).then(
-      (result) => result.anchoredProbability,
-      () => null,
-    ),
+    anchoredEnabled
+      ? runAnchoredDiagnostic(
+          toAnchoredPromptInput(blindInput, marketProbability),
+          samplingConfig,
+        ).then(
+          (result) => result.anchoredProbability,
+          () => null,
+        )
+      : Promise.resolve(null),
   ]);
 
   if (majorityDeclaredInsufficientEvidence(blindResult.succeededCount, blindResult.insufficientEvidenceCount)) {

@@ -5,9 +5,10 @@
  * — no network, no `ANTHROPIC_API_KEY`, per the task contract.
  */
 import type Anthropic from '@anthropic-ai/sdk';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, beforeEach} from 'vitest';
 
 import { handleForecastRequest } from '@/app/api/ai/forecast/route';
+import { __resetForecastCacheForTests } from '@/app/api/ai/forecast/route';
 import type { AnthropicTransport } from '@/ai';
 import type { Recommendation } from '@/domain';
 
@@ -106,6 +107,7 @@ function useMarketAndBookFixtures(): void {
 }
 
 describe('POST /api/ai/forecast', () => {
+  beforeEach(() => __resetForecastCacheForTests());
   it('returns a complete Recommendation for a fixture market, with provenance', async () => {
     useMarketAndBookFixtures();
     const transport = new FakeTransport([successMessage(0.8), successMessage(0.75)]);

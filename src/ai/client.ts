@@ -3,10 +3,24 @@ import Anthropic from '@anthropic-ai/sdk';
 import { AiClientError } from './errors';
 
 /**
- * Fixed by ADR-0005. Server-side only - see `CLAUDE.md` rule 7 and
- * `docs/08-operations/SECRETS.md`.
+ * ADR-0005 fixes `claude-opus-5` as the default, and that remains the model the
+ * project's claims are made about. `ANTHROPIC_MODEL` overrides it.
+ *
+ * The override exists because cost here is not incidental: a single forecast is
+ * `AI_SAMPLES` blind calls plus one anchored diagnostic, so the default k=5
+ * bills **six** model calls per forecast. On Opus that is the most expensive
+ * thing this project does by a wide margin, and a reviewer clicking through a
+ * demo pays it every time.
+ *
+ * Anything set here is recorded on the forecast alongside `promptVersion`, so a
+ * result produced on a cheaper model is never silently attributed to Opus.
+ * Forecasts made under different models are not pooled, for the same reason
+ * forecasts under different prompt versions are not.
  */
-export const ANTHROPIC_MODEL_ID = 'claude-opus-5';
+export const DEFAULT_ANTHROPIC_MODEL_ID = 'claude-opus-5';
+
+export const ANTHROPIC_MODEL_ID: string =
+  process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_ANTHROPIC_MODEL_ID;
 
 /**
  * `AI_SAMPLES` from `.env.example`. k independent blind samples per forecast.
