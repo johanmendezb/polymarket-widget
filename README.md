@@ -108,7 +108,7 @@ pnpm test:live    # live Polymarket contract suite, excluded from CI
 
 Deliberately bottom-heavy by design: 100% branch coverage on `src/simulation`, six-to-eight scenarios per API route (MSW-backed, no live network), and no coverage target on the UI at all. Full strategy: [`docs/07-testing/TEST_STRATEGY.md`](docs/07-testing/TEST_STRATEGY.md).
 
-Current measured state (`pnpm typecheck && pnpm lint && pnpm test`, 2026-08-17): **zero typecheck errors, zero lint warnings, 455 tests green across 55 files.** `pnpm test:e2e` currently runs two Playwright smoke specs (`/api/health`, the widget shell at two container widths); the golden-path and failure-path E2E suites the strategy document specifies are not yet implemented — see Known limitations.
+Current measured state (2026-08-17): **zero typecheck errors, zero lint warnings, 455 tests green across 55 files** (`pnpm typecheck && pnpm lint && pnpm test`), plus **14 Playwright specs green in ~13s** (`pnpm test:e2e`) covering the golden path and all six failure paths. A separate 12-assertion live contract suite (`pnpm test:live`) runs against production Polymarket and is deliberately excluded from CI.
 
 The two tests that matter most:
 
@@ -170,7 +170,8 @@ Stated plainly, because an unstated limitation looks like an oversight.
 6. Resolution tail risk is disclosed but not quantified, because Polymarket's annulment rate is unknown.
 7. Taker market buys only. No limit orders, no maker simulation, no selling.
 8. Staging sleeps after ~15 minutes idle. Warm it before you look at it.
-9. **E2E coverage is partial.** `docs/07-testing/TEST_STRATEGY.md` specifies one golden-path suite plus six failure-path suites (E6). As of this writing, `e2e/` holds two smoke specs — a health check and a widget-shell layout check — and the golden-path and failure-path suites are not yet implemented.
+9. **E2E proves behaviour against fixtures, not against production.** The golden path and all six failure paths run in CI (14 specs, ~13s), fully deterministic — every fetch is intercepted in the browser, so the suite never touches the live Polymarket API and cannot flake for network reasons. The flip side is that a green E2E run is not evidence that Polymarket still behaves as recorded. That is what `pnpm test:live` is for, and it is deliberately excluded from CI.
+10. **No real model call has been made from the deployed environment.** The whole AI layer is verified against an injected mock transport, which is what makes it testable at all. Live latency, cost, and real schema compliance remain unmeasured until `ANTHROPIC_API_KEY` is set on staging.
 
 ## Compliance
 
