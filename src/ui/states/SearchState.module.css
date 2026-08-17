@@ -1,0 +1,187 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.searchLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: light-dark(#4b5563, #9ca3af);
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid light-dark(#d1d5db, #374151);
+  background: light-dark(#ffffff, #111318);
+  color: inherit;
+}
+
+.input:focus-visible {
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 1px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid light-dark(#d1d5db, #374151);
+  background: light-dark(#f3f4f6, #1a1d23);
+  color: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  background: light-dark(#dbeafe, #1e3a5f);
+  border-color: light-dark(#93c5fd, #3b82f6);
+}
+
+.chip:focus-visible {
+  outline: 2px solid light-dark(#2563eb, #60a5fa);
+  outline-offset: 1px;
+}
+
+.sectionLabel {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: light-dark(#6b7280, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid light-dark(#e5e7eb, #262a33);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rowActive {
+  border-color: light-dark(#2563eb, #60a5fa);
+  background: light-dark(#eff6ff, #16233b);
+}
+
+.question {
+  margin: 0;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.skeletonRow {
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid light-dark(#e5e7eb, #262a33);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonLine {
+  height: 12px;
+  border-radius: 4px;
+  background: light-dark(#e5e7eb, #262a33);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonLine {
+    animation: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.errorPanel,
+.noResults {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid light-dark(#e5e7eb, #262a33);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noResultsHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.staleBadge {
+  margin: 0;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: light-dark(#fef3c7, #3f2f0f);
+  color: light-dark(#92400e, #fbbf24);
+}
+
+.staleErrorDetail {
+  margin: 0;
+  font-size: 0.75rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+/* Wide container: rows lay meta out horizontally instead of stacked. */
+@container widget-shell (min-width: 640px) {
+  .meta {
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .question {
+    flex: 1;
+  }
+}

@@ -1,0 +1,32 @@
+/*
+ * The layout system. Every responsive rule here is a container query keyed
+ * off `.shell`'s own inline size, never a media query keyed off the host
+ * page's viewport. See ADR-0014.
+ *
+ * `.shell` establishes the query container; `.frame` (the inner wrapper) is
+ * what actually queries it — a container cannot query itself.
+ */
+
+.shell {
+  container-type: inline-size;
+  container-name: widget-shell;
+  min-height: 100%;
+  background: light-dark(#ffffff, #0b0d10);
+  color: light-dark(#111827, #f3f4f6);
+}
+
+.frame {
+  box-sizing: border-box;
+  padding: 16px;
+  /* Fluid type driven by the container's own inline size (cqi), per UX_RESEARCH.md §2.3d. */
+  font-size: clamp(0.875rem, 0.75rem + 0.5cqi, 1rem);
+}
+
+/* At 380px there is no room for anything but a single full-bleed column. */
+@container widget-shell (min-width: 640px) {
+  .frame {
+    max-width: 640px;
+    margin-inline: auto;
+    padding: 24px;
+  }
+}

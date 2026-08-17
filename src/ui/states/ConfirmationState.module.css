@@ -1,0 +1,123 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.simBadge {
+  align-self: flex-start;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: light-dark(#dcfce7, #14301f);
+  color: light-dark(#166534, #4ade80);
+}
+
+.question {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.outcomeLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.summaryLines {
+  margin: 0;
+  border: 1px solid light-dark(#e5e7eb, #262a33);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.line dt {
+  color: light-dark(#4b5563, #9ca3af);
+}
+
+.line dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.profit {
+  color: light-dark(#15803d, #4ade80);
+}
+
+.loss {
+  color: light-dark(#b91c1c, #f87171);
+}
+
+.nextStep {
+  margin: 0;
+  font-size: 0.82rem;
+  color: light-dark(#374151, #d1d5db);
+}
+
+.backButton {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid light-dark(#d1d5db, #374151);
+  background: light-dark(#f9fafb, #1a1d23);
+  color: inherit;
+  cursor: pointer;
+}
+
+.positions {
+  margin-top: 8px;
+  border-top: 1px solid light-dark(#e5e7eb, #262a33);
+  padding-top: 12px;
+}
+
+.positionsHeading {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.resetNote {
+  margin: 2px 0 8px;
+  font-size: 0.75rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.positionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.positionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: light-dark(#f9fafb, #1a1d23);
+}
+
+@container widget-shell (min-width: 640px) {
+  .positionRow {
+    justify-content: space-between;
+  }
+}

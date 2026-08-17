@@ -1,0 +1,221 @@
+.root {
+  border: 1px solid light-dark(#ddd6fe, #3730a3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: light-dark(#faf9ff, #17152a);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: light-dark(#6d28d9, #c4b5fd);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.heading {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: light-dark(#6d28d9, #c4b5fd);
+}
+
+.phase {
+  margin: 0;
+  font-size: 0.82rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.resultBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionHeading {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.evidenceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evidenceItem {
+  border-left: 2px solid light-dark(#ddd6fe, #3730a3);
+  padding-left: 8px;
+}
+
+.evidenceClaim {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.evidenceMeta {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.evidenceMeta a {
+  color: light-dark(#6d28d9, #c4b5fd);
+}
+
+.undated {
+  color: light-dark(#92400e, #fbbf24);
+  font-weight: 600;
+}
+
+.supportsTag {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 0.82rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+/*
+ * The "secondary register" for the model's number: smaller, a different
+ * colour family (violet, not the market price's blue/grey), always with the
+ * market number alongside as plain text — never the same visual weight.
+ */
+.estimateBlock {
+  background: light-dark(#f3f0ff, #201c3d);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.estimateLabel {
+  margin: 0;
+  font-size: 0.72rem;
+  color: light-dark(#6d28d9, #c4b5fd);
+}
+
+.estimateRange {
+  margin: 2px 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: light-dark(#5b21b6, #ddd6fe);
+  font-variant-numeric: tabular-nums;
+}
+
+.estimateMeta {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.anchoringWarning {
+  margin: 0;
+  font-size: 0.78rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: light-dark(#fef3c7, #3f2f0f);
+  color: light-dark(#92400e, #fbbf24);
+}
+
+.verdictLabel {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.verdictNote {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.reasonList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reasonDetails summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: light-dark(#6d28d9, #c4b5fd);
+}
+
+.reasonJustification {
+  margin: 2px 0 0 16px;
+  font-size: 0.78rem;
+  color: light-dark(#374151, #d1d5db);
+}
+
+.noEvidenceHeadline {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.provenance {
+  margin: 4px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid light-dark(#ede9fe, #2e2a52);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.72rem;
+  color: light-dark(#6b7280, #9ca3af);
+}
+
+.provenance div {
+  display: flex;
+  gap: 4px;
+}
+
+.provenance dt {
+  font-weight: 600;
+}
+
+.provenance dd {
+  margin: 0;
+}
+
+.errorBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: light-dark(#991b1b, #fca5a5);
+}
+
+.errorBlock button {
+  border: 1px solid currentColor;
+  background: none;
+  color: inherit;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+@container widget-shell (min-width: 640px) {
+  .estimateRange {
+    font-size: 1.6rem;
+  }
+}
