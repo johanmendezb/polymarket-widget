@@ -12,7 +12,7 @@ import { parseSubmitForecastToolInput, type ForecastSample } from './schema';
 /**
  * Generous but bounded: `reasoning_summary` is capped at 400 chars and
  * `evidence` at 8 items by the schema, so the model's own output is small.
- * Most of the budget covers the web-search tool-use loop preceding it.
+ * A clean forecast lands well under 1k output tokens in practice.
  */
 const MAX_OUTPUT_TOKENS = 4096;
 
@@ -23,16 +23,6 @@ const SUBMIT_FORECAST_TOOL: Anthropic.Tool = {
 };
 
 /**
- * `web_search_20250305` is the version this SDK's stable (non-beta)
- * `messages.create` surface supports. No beta header, no dynamic filtering -
- * see the polymarket-domain/claude-api skill notes recorded alongside this
- * task's handoff.
- */
-const WEB_SEARCH_TOOL: Anthropic.WebSearchTool20250305 = {
-  type: 'web_search_20250305',
-  name: 'web_search',
-};
-
 /**
  * `tool_choice` forces `submit_forecast`; a prose-only response is therefore
  * always a schema violation, never a distinct "no tool call" case.
@@ -54,7 +44,26 @@ function buildRequestParams(
     model: modelId,
     max_tokens: MAX_OUTPUT_TOKENS,
     messages: [{ role: 'user', content: promptText }],
-    tools: [SUBMIT_FORECAST_TOOL, WEB_SEARCH_TOOL],
+    // Deliberately submit_forecast ONLY. Offering web_search alongside it made
+    // the model open with a search call instead of a forecast: the response
+    // came back with a single tool_use named `web_search` and no
+    // `submit_forecast` block at all. Because this is a one-shot,
+    // non-streaming request that never fulfils a search and continues the
+    // conversation, the forecast never arrived, and the missing block was
+    // (correctly) read as a schema violation -> retry -> AI_INVALID_OUTPUT.
+    //
+    // Observed 2026-08-17 against the live model: 4 of 4 samples on a
+    // low-coverage market returned `{ query: ... }` and 99 output tokens.
+    // Well-covered markets answered from model knowledge and validated
+    // cleanly, which is exactly why this looked like "works for politics,
+    // fails for GTA 6".
+    //
+    // Re-enabling web search means implementing the tool loop (fulfil the
+    // search, feed results back, repeat until submit_forecast). That is real
+    // work and materially more tokens per forecast, so it is a deliberate
+    // deferral, not an oversight. See the evidence-quality caveat in
+    // AI_SYSTEM.md.
+    tools: [SUBMIT_FORECAST_TOOL],
     tool_choice: { type: 'tool', name: 'submit_forecast' },
   };
 }
