@@ -9,19 +9,19 @@ t0: 2026-08-15
 active_epic: E2, E3, E4, E5 (fanned out)
 active_task: T2.2-T2.6, T3.1-T3.4, T4.1, T5.1 (four workers in parallel)
 blocked_by: []
-last_completed: E1 (all of T1.1-T1.4, delivered and merged)
+last_completed: E2 (T2.1-T2.6, 154 tests, src/simulation at 100% branch coverage)
 next_action: Four workers are running in parallel off branch `e2-domain` (which carries T2.1's domain types) - E2 simulation, E3 read path, T4.1 widget shell, T5.1 blind prompt. Review each against its acceptance criteria as it lands, then merge E2 and E3 (self-merge, infra) and hold E4/E5 for owner QA. T5.4 (AI panel) needs T4.4, so it is the one wave-4 task that must wait.
 critical_risks:
   - R-01 anchoring collapse in the AI layer
   - R-02 scope creep past the time budget
   - R-03 shipping a cost preview without the taker fee
 open_decisions: []
-tests_status: GREEN_18_UNIT_1_E2E (plus a separate 12-assertion live contract suite, `pnpm test:live`, run manually against production and structurally excluded from CI)
+tests_status: GREEN_154_UNIT_1_E2E (plus a separate 12-assertion live contract suite, `pnpm test:live`, run manually against production and structurally excluded from CI)
 deployment_status: LIVE https://polymarket-widget.onrender.com (verified 2026-08-16, commit 387d828)
 environment: staging_only_render
 awaiting_qa: []
 assumed_accepted_note: E1 self-merged under the hybrid gate agreed with the owner 2026-08-16; E4, E5, E7, E8, E9 stop for QA.
-assumed_accepted: [E1]
+assumed_accepted: [E1, E2]
 ```
 
 ---
