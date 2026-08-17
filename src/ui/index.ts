@@ -11,3 +11,5 @@ export {
 } from './theme';
 
 export { sampleRecommendation } from './fixtures';
+
+export { WidgetApp } from './WidgetApp';
