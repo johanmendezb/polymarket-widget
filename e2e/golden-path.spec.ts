@@ -67,7 +67,11 @@ test('golden path: search, AI second opinion, preview, confirm, position', async
 
   // AI second opinion: independent data path, user-invoked (USER_FLOWS.md State B).
   await page.getByRole('button', { name: 'Get a second opinion' }).click();
-  await expect(page.getByText('AI second opinion — Yes')).toBeVisible();
+  await expect(page.getByText('AI second opinion', { exact: true })).toBeVisible();
+  // The outcome under estimate is context, not the verdict. Asserting the two
+  // separately is the point: "AI second opinion — Yes" used to read as a
+  // verdict of Yes sitting next to the title.
+  await expect(page.getByText('Estimating the probability of “Yes”')).toBeVisible();
   await expect(page.getByText('Consider', { exact: true })).toBeVisible();
 
   // Select the Yes outcome -> State C.
