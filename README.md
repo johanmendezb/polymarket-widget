@@ -97,6 +97,7 @@ Full strategy: [`docs/07-testing/TEST_STRATEGY.md`](docs/07-testing/TEST_STRATEG
 
 <img width="650" height="1149" alt="image" src="https://github.com/user-attachments/assets/e5303c6a-30b0-448c-b5e0-0a93afa84b0c" />
 
+https://github.com/user-attachments/assets/0d941618-aa9b-448e-99ab-39864bdf667f
 
 ### Prompts
 
