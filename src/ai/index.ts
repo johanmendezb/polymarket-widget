@@ -31,6 +31,11 @@ export { AiClientError } from './errors';
 export { aggregateBlindSamples, fromLogOdds, interquartileRange, toLogOdds } from './aggregate';
 export type { BlindAggregate } from './aggregate';
 
+export { BLEND_WEIGHT, blendWithMarket } from './blend';
+
+export { composeForecastRecommendation, REFERENCE_FILL_USDC } from './forecast';
+export type { ComposeForecastDeps, ForecastResult } from './forecast';
+
 export { parseSubmitForecastToolInput } from './schema';
 export type { ForecastSample } from './schema';
 
