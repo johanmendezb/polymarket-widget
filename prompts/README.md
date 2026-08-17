@@ -45,8 +45,15 @@ The prompts that produced this repository. Captured verbatim as sent, including 
 | `build/01-research-domain.md` | T0+0h | `POLYMARKET_RESEARCH.md`, the domain model, the execution model. Run inline rather than delegated, and the file explains why. |
 | `build/02-research-competitive.md` | T0+0h | `COMPETITIVE_RESEARCH.md`, `UX_RESEARCH.md`, 58 source records. Delegated. |
 | `build/03-research-strategy.md` | T0+0h | `STRATEGY_RESEARCH.md`, `EVALUATION.md`, 33 source records. Delegated. **This is the one that changed the product.** |
+| `build/04-implementation-orchestration.md` | T0+1d | **Every line of application code.** The dispatch model, the standing rules, and the 17 task prompts in `build/implementation/`, all verbatim. Also records the five places where a worker proved the orchestrator wrong. |
 
 `02` and `03` ran in parallel while `01` ran in the orchestrator session.
+
+`04` covers the implementation phase, which ran as one Orca worktree and one Claude worker per
+task. Its prompts are reproduced in `build/implementation/`: a standing template identical for
+every task, plus one task-specific block each. No dispatch prompt ever pasted a task contract into
+itself — each told the worker which contract to read from `BACKLOG.md`, which is the whole reason
+the knowledge layer is written to be loaded selectively.
 
 ### Why these are in the submission
 
