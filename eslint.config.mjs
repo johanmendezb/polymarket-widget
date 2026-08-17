@@ -108,12 +108,24 @@ export default tseslint.config(
     },
   },
 
-  // Node-side scripts are plain ESM, run outside the bundler and are allowed
-  // to talk to the operator on stdout.
+  // Node-side scripts run outside the bundler and are allowed to talk to the
+  // operator on stdout. `record-fixtures.ts` runs under Node's type stripping,
+  // so it is TypeScript but still a plain Node script.
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'scripts/**/*.ts'],
     languageOptions: {
-      globals: { console: 'readonly', process: 'readonly' },
+      // Web-standard globals that Node 22 provides natively. Listed explicitly
+      // rather than pulled in as a broad `globals.node` set, so that anything
+      // genuinely undefined in a script still fails the lint.
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        AbortSignal: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+      },
     },
     rules: { 'no-console': 'off' },
   },

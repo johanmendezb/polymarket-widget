@@ -71,6 +71,12 @@ dependencies: [T1.1]
 
 **Acceptance criteria.** Workflow green on push. A deliberately introduced type error fails the run. A deliberately introduced `NEXT_PUBLIC_ANTHROPIC_API_KEY` fails the secret-leak step.
 
+**Correction, made while implementing.** The `secret-leak` step as specified above cannot meet its own third acceptance criterion, and this was verified against a real build rather than reasoned about. Next inlines `NEXT_PUBLIC_*` references at build time as the **value**: `process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY` compiles down to the literal string it held, so the variable **name never appears in `.next/static` at all**. Grepping the bundle for `ANTHROPIC` therefore sees nothing, and the key-prefix grep only catches the leak when the value happens to be shaped like a real key — precisely the condition you cannot depend on, and one you must not reproduce in a test.
+
+So `secret-leak` is two halves. The bundle grep stays exactly as specified, because it is what catches a real key that reached the browser. Added to it is a **name-level scan** of `src/` and `.env.example`, plus the build environment, for any `NEXT_PUBLIC_*ANTHROPIC*` variable. The name is only visible before the build, so before the build is where it has to be caught. The environment scan reads names only and never prints a value.
+
+**Also implemented, and not in the original requirements:** `pnpm audit` per `04-architecture/SECURITY.md` (informational report, gating only on a *critical* advisory — every advisory today is transitive through `next` and unfixable here, and a job that is red on `main` from day one is a job nobody reads); triggers on `pull_request` as well as `push`, because the branch protection T1.3 enables applies to PRs; and a single aggregate `ci` job that all others feed into, so branch protection has one stable check name to require instead of five that drift as jobs are added. No E2E job — Playwright browser provisioning in CI belongs to E6.
+
 ---
 
 ## T1.3 - Render staging deployment of the skeleton
