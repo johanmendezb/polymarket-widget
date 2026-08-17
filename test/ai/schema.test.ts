@@ -74,26 +74,52 @@ describe('parseSubmitForecastToolInput', () => {
     expect(() => parseSubmitForecastToolInput(validRawInput({ probability: 1.4 }))).toThrow();
   });
 
-  it('rejects a missing required field', () => {
+  it('rejects a missing load-bearing field: probability is the answer', () => {
     const raw = validRawInput();
-    delete (raw as Record<string, unknown>).resolution_ambiguity;
+    delete (raw as Record<string, unknown>).probability;
 
     expect(() => parseSubmitForecastToolInput(raw)).toThrow();
   });
 
-  it('rejects an invalid supports enum value', () => {
+  it('rejects a missing insufficient_evidence: defaulting it would turn an abstention into a forecast', () => {
+    const raw = validRawInput();
+    delete (raw as Record<string, unknown>).insufficient_evidence;
+
+    expect(() => parseSubmitForecastToolInput(raw)).toThrow();
+  });
+
+  it('degrades a missing presentation field rather than failing the whole sample', () => {
+    const raw = validRawInput();
+    delete (raw as Record<string, unknown>).resolution_ambiguity;
+
+    // Falls back to the conservative value: more likely to abstain, never less.
+    expect(parseSubmitForecastToolInput(raw).resolutionAmbiguity).toBe('high');
+  });
+
+  it('drops an invalid evidence item but keeps the valid ones', () => {
     const raw = validRawInput({
       evidence: [
         {
-          claim: 'x',
-          source_url: 'https://example.com',
-          source_title: 'x',
+          claim: 'kept',
+          source_url: 'https://example.com/good',
+          source_title: 'good',
+          supports: 'yes',
+        },
+        {
+          claim: 'dropped',
+          source_url: 'https://example.com/bad',
+          source_title: 'bad',
           supports: 'maybe',
         },
       ],
     });
 
-    expect(() => parseSubmitForecastToolInput(raw)).toThrow();
+    const parsed = parseSubmitForecastToolInput(raw);
+
+    // The good source survives. Nuking the whole array over one bad item would
+    // render the panel source-free, which misrepresents what the model found.
+    expect(parsed.evidence).toHaveLength(1);
+    expect(parsed.evidence[0]?.claim).toBe('kept');
   });
 
   describe('insufficient_evidence is a valid answer, not an error', () => {

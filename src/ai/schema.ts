@@ -16,12 +16,47 @@ const evidenceItemInputSchema = z.object({
   supports: z.enum(['yes', 'no', 'context']),
 });
 
+/**
+ * Two tiers, deliberately.
+ *
+ * **Load-bearing fields are strict.** `probability` is the answer.
+ * `insufficient_evidence` is the abstention signal, and defaulting it to
+ * `false` would silently convert "I could not find sources I trust" into a
+ * confident forecast, which is the exact dishonesty the gate exists to prevent.
+ * A sample missing either of these is genuinely unusable and must fail.
+ *
+ * **Presentation fields degrade instead of failing.** `risks`, and a malformed
+ * `resolution_ambiguity`, cannot be allowed to destroy a sample that carries a
+ * valid probability, reasoning and evidence.
+ *
+ * That distinction is not theoretical. Measured against the live model on
+ * 2026-08-17, 1 sample in 6 failed validation on `risks` alone — the model had
+ * answered the question correctly and rendered one display field in a shape the
+ * schema did not expect. Under `AI_SAMPLES=1` there is no sibling sample to
+ * fall back on, so that single field took down the whole forecast and surfaced
+ * to the user as "the model's response didn't match the expected format".
+ *
+ * `resolution_ambiguity` falls back to `high`, which is the conservative
+ * direction: it makes the gate more likely to abstain, never less.
+ */
 const submitForecastInputSchema = z.object({
   probability: z.number().min(0).max(1),
-  reasoning_summary: z.string(),
-  evidence: z.array(evidenceItemInputSchema).max(8),
-  risks: z.array(z.string()).max(4).optional(),
-  resolution_ambiguity: z.enum(['low', 'medium', 'high']),
+  reasoning_summary: z.string().catch(''),
+  // Per-item resilience, not per-array. A single malformed evidence item must
+  // not discard the good ones: dropping all sources because one had a bad
+  // `supports` value would make the panel look source-free when it is not,
+  // which is a worse lie than showing three sources instead of four.
+  evidence: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items.flatMap((item) => {
+        const parsed = evidenceItemInputSchema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+      }).slice(0, 8),
+    ),
+  risks: z.array(z.string()).max(4).optional().catch([]),
+  resolution_ambiguity: z.enum(['low', 'medium', 'high']).catch('high'),
   insufficient_evidence: z.boolean(),
 });
 
