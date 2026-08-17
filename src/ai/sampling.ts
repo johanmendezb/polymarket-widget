@@ -16,6 +16,18 @@ import { parseSubmitForecastToolInput, type ForecastSample } from './schema';
  */
 const MAX_OUTPUT_TOKENS = 4096;
 
+/**
+ * Server-executed by the API: it runs the search itself and returns
+ * `server_tool_use` and `web_search_tool_result` blocks inline, followed by the
+ * model's `submit_forecast` call, all in one response. No client-side tool loop
+ * is required.
+ */
+const WEB_SEARCH_TOOL: Anthropic.WebSearchTool20250305 = {
+  type: 'web_search_20250305',
+  name: 'web_search',
+  max_uses: 4,
+};
+
 const SUBMIT_FORECAST_TOOL: Anthropic.Tool = {
   name: SUBMIT_FORECAST_TOOL_SCHEMA.name as string,
   description: SUBMIT_FORECAST_TOOL_SCHEMA.description as string,
@@ -24,8 +36,9 @@ const SUBMIT_FORECAST_TOOL: Anthropic.Tool = {
 
 /**
 /**
- * `tool_choice` forces `submit_forecast`; a prose-only response is therefore
- * always a schema violation, never a distinct "no tool call" case.
+ * A response with no `submit_forecast` block is a schema violation, never a
+ * distinct "no tool call" case. See the tool_choice note below for why that is
+ * enforced after the answer rather than by forcing the tool up front.
  *
  * Deliberately omits both `temperature` and `thinking`:
  * - `temperature` is a 400 on `claude-opus-5` (sampling parameters were
@@ -44,27 +57,20 @@ function buildRequestParams(
     model: modelId,
     max_tokens: MAX_OUTPUT_TOKENS,
     messages: [{ role: 'user', content: promptText }],
-    // Deliberately submit_forecast ONLY. Offering web_search alongside it made
-    // the model open with a search call instead of a forecast: the response
-    // came back with a single tool_use named `web_search` and no
-    // `submit_forecast` block at all. Because this is a one-shot,
-    // non-streaming request that never fulfils a search and continues the
-    // conversation, the forecast never arrived, and the missing block was
-    // (correctly) read as a schema violation -> retry -> AI_INVALID_OUTPUT.
+    tools: [SUBMIT_FORECAST_TOOL, WEB_SEARCH_TOOL],
+    // `auto`, not a forced `submit_forecast`. Forcing the tool is what broke
+    // this: the model could not search first, so on any market it could not
+    // answer from memory it emitted a bare `web_search` call and no forecast,
+    // which surfaced as AI_INVALID_OUTPUT. Removing search instead made the
+    // model abstain on essentially everything, because the prompt asks for
+    // dated sources and it correctly refuses to invent them.
     //
-    // Observed 2026-08-17 against the live model: 4 of 4 samples on a
-    // low-coverage market returned `{ query: ... }` and 99 output tokens.
-    // Well-covered markets answered from model knowledge and validated
-    // cleanly, which is exactly why this looked like "works for politics,
-    // fails for GTA 6".
-    //
-    // Re-enabling web search means implementing the tool loop (fulfil the
-    // search, feed results back, repeat until submit_forecast). That is real
-    // work and materially more tokens per forecast, so it is a deliberate
-    // deferral, not an oversight. See the evidence-quality caveat in
-    // AI_SYSTEM.md.
-    tools: [SUBMIT_FORECAST_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_forecast' },
+    // With `auto` the model searches (server-side) and then calls
+    // `submit_forecast` in the same response. A prose-only reply remains a
+    // schema violation via the missing-block check below, retried once, so the
+    // determinism the forced choice was protecting is still enforced - just
+    // downstream of the answer rather than upstream of the search.
+    tool_choice: { type: 'auto' },
   };
 }
 
