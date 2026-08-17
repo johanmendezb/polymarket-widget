@@ -153,7 +153,7 @@ describe('MarketDetailState', () => {
     expect(screen.getByText(/Resolves YES if X happens/)).toBeTruthy();
   });
 
-  it('the AI panel is an inert placeholder: opening it makes no network call and never fires automatically', async () => {
+  it('the AI panel never fires on load: only clicking "Get a second opinion" calls the forecast route', async () => {
     mockFetchRouter(buildMarket());
     render(<MarketDetailState marketId="m-1" onBack={vi.fn()} onSelectOutcome={vi.fn()} />);
 
@@ -161,13 +161,14 @@ describe('MarketDetailState', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
 
     const fetchSpy = vi.mocked(global.fetch);
-    const callsBefore = fetchSpy.mock.calls.length;
+    expect(fetchSpy.mock.calls.some(([input]) => String(input).includes('/api/ai/forecast'))).toBe(false);
 
     const user = userEvent.setup();
     await user.click(toggle);
 
-    expect(screen.getByText(/coming in a future update/)).toBeTruthy();
-    expect(fetchSpy.mock.calls.length).toBe(callsBefore);
+    await waitFor(() => {
+      expect(fetchSpy.mock.calls.some(([input]) => String(input).includes('/api/ai/forecast'))).toBe(true);
+    });
   });
 
   it('selecting an outcome calls onSelectOutcome with the market and the chosen outcome', async () => {
