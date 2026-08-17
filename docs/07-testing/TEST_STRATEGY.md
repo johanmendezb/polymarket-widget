@@ -110,7 +110,7 @@ For `/api/ai/forecast`, additionally: schema violation retries once then `AI_INV
 
 ## E2E
 
-Playwright, Chromium only, fully deterministic against MSW. No live network in CI, ever, because a flaky demo-day test is worse than no test.
+Playwright, Chromium only, fully deterministic against MSW. No live network in CI, ever, because a flaky demo-day test is worse than no test. (Mechanism decided at T6.1: `page.route()` intercepting the browser's own calls to this app's `/api/*` contract, not the `msw` package — see ADR-0011's implementation note for why.)
 
 **Golden path** (`01-product/USER_FLOWS.md`): search, select, detail, request AI, choose outcome, enter amount, assert the five preview values against numbers computed from the fixture book, confirm, assert the position. Asserts on values, not just element presence.
 
