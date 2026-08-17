@@ -26,6 +26,14 @@
   color: light-dark(#6d28d9, #c4b5fd);
 }
 
+.headingContext {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  /* Deliberately quieter than .heading: this names which outcome is being
+     estimated, and must not read as the estimate itself. */
+  color: light-dark(#57534e, #a8a29e);
+}
+
 .phase {
   margin: 0;
   font-size: 0.82rem;

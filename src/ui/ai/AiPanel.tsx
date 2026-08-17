@@ -230,8 +230,15 @@ export function AiPanel({ marketId, tokenId, outcomeLabel }: AiPanelProps) {
         </button>
       ) : (
         <>
+          {/* "AI second opinion — Yes" read as a verdict of "Yes" sitting next
+              to the title, which is exactly the confusion the three-register
+              separation exists to prevent. The outcome being estimated is
+              context, not the answer, so it is stated as such and set apart. */}
           <p className={styles.heading} aria-expanded={true}>
-            AI second opinion — {outcomeLabel}
+            AI second opinion
+          </p>
+          <p className={styles.headingContext}>
+            Estimating the probability of &ldquo;{outcomeLabel}&rdquo;
           </p>
           {status === 'loading' ? <LoadingPhases /> : null}
           {status === 'success' && recommendation !== null ? <SuccessView recommendation={recommendation} /> : null}

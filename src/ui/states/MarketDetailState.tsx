@@ -59,17 +59,26 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
   const { market, status, fetchedAt, error, retry } = useMarket(marketId);
   const now = useNow();
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  // Starts null, not 0. A radiogroup that mounts with the first option already
+  // aria-checked tells the user they picked "Yes" when they have not touched it,
+  // and in a two-outcome market that is a nudge toward one side of a bet.
+  // Nothing is selected until the user selects something.
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  // Which outcome the read-only surfaces (price, sparkline, order book) describe
+  // before a choice exists. Index 0 is the conventional headline outcome; this is
+  // display only and never renders as a selection.
+  const focusIndex = activeIndex ?? 0;
   const [showResolution, setShowResolution] = useState(false);
   const [showOrderBook, setShowOrderBook] = useState(false);
   const [pulsing, setPulsing] = useState(false);
   const prevPriceRef = useRef<number | null>(null);
 
-  const bookTokenId = showOrderBook ? (market?.outcomes[activeIndex]?.tokenId ?? null) : null;
+  const bookTokenId = showOrderBook ? (market?.outcomes[focusIndex]?.tokenId ?? null) : null;
   const { book: disclosureBook, status: disclosureBookStatus } = useBook(bookTokenId, { pollMs: null });
 
   const wideSpread = market !== null && market.spread !== null && priceValue(market.spread) > WIDE_SPREAD_THRESHOLD;
-  const displayPrice = market === null ? null : wideSpread ? market.lastTradePrice : (midpointOf(market) ?? market.outcomes[activeIndex]?.indicativePrice ?? null);
+  const displayPrice = market === null ? null : wideSpread ? market.lastTradePrice : (midpointOf(market) ?? market.outcomes[focusIndex]?.indicativePrice ?? null);
 
   useEffect(() => {
     if (displayPrice === null) return;
@@ -127,13 +136,13 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
     if (outcomes.length === 0) return;
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       event.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, outcomes.length - 1));
+      setActiveIndex((i) => Math.min((i ?? 0) + 1, outcomes.length - 1));
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       event.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, 0));
+      setActiveIndex((i) => Math.max((i ?? 0) - 1, 0));
     } else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      selectOutcome(activeIndex);
+      selectOutcome(focusIndex);
     }
   };
 
@@ -170,7 +179,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         </p>
       ) : null}
 
-      <Sparkline tokenId={outcomes[activeIndex]?.tokenId ?? outcomes[0]?.tokenId ?? ''} />
+      <Sparkline tokenId={outcomes[focusIndex]?.tokenId ?? outcomes[0]?.tokenId ?? ''} />
 
       <div
         role="radiogroup"
@@ -186,7 +195,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
               type="button"
               role="radio"
               aria-checked={index === activeIndex}
-              tabIndex={index === activeIndex ? 0 : -1}
+              tabIndex={index === focusIndex ? 0 : -1}
               className={isBinary ? styles.binaryButton : styles.barRow}
               onFocus={() => {
                 setActiveIndex(index);
@@ -275,11 +284,11 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         ) : null}
       </div>
 
-      {outcomes[activeIndex] !== undefined ? (
+      {outcomes[focusIndex] !== undefined ? (
         <AiPanel
           marketId={market.id}
-          tokenId={outcomes[activeIndex].tokenId}
-          outcomeLabel={outcomes[activeIndex].label}
+          tokenId={outcomes[focusIndex].tokenId}
+          outcomeLabel={outcomes[focusIndex].label}
         />
       ) : null}
     </div>
