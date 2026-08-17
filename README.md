@@ -95,6 +95,9 @@ The two tests that matter most:
 
 Full strategy: [`docs/07-testing/TEST_STRATEGY.md`](docs/07-testing/TEST_STRATEGY.md).
 
+<img width="650" height="1149" alt="image" src="https://github.com/user-attachments/assets/e5303c6a-30b0-448c-b5e0-0a93afa84b0c" />
+
+
 ### Prompts
 
 Every prompt is in [`prompts/`](prompts/), and it is part of the submission rather than an appendix.
