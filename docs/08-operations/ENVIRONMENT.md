@@ -6,11 +6,23 @@
 
 | | |
 |---|---|
-| Name | `polymarket-widget-staging` |
+| Name | `polymarket-widget` |
+| Service id | `srv-da14g38jo6nc73fr52j0`, region Ohio, free plan |
 | Host | Render, free web service |
 | Deploys from | `main`, automatically on push |
-| URL | _record at T1.3_ |
-| Health check | `/api/health` |
+| URL | https://polymarket-widget.onrender.com |
+| Health check | `/api/health` (endpoint live; the Render-side health check **path** is still unset — see below) |
+| Build | `corepack enable && pnpm install --frozen-lockfile && pnpm build` |
+| Start | `pnpm start` |
+| Node | pinned by `NODE_VERSION=22` |
+
+The service is named `polymarket-widget`, not `polymarket-widget-staging` as originally
+specified. There is one environment and no production, so the bare name is not ambiguous, and
+it keeps the URL short for a reviewer. Recorded here rather than silently diverging.
+
+**Two settings the Render MCP cannot reach**, so they are owner actions in the dashboard: the
+health check **path**, and `ANTHROPIC_API_KEY`. The MCP can create a service and set
+environment variables, but exposes no update-service call. Neither blocks anything before E5.
 
 Because `main` deploys automatically and there is no production to shield, **the pull request is the buffer**. An epic that has not passed QA acceptance never reaches the staging URL. See ADR-0017 and `06-execution/DELIVERY_PROTOCOL.md`.
 
@@ -126,6 +138,7 @@ Then, manually: load `/widget`, search a market, open it, price a bet. If the AI
 | Fee shows $0.00 on a politics market | Fee config fell back and got zeroed | Check `FeeConfig.source`. This is R-03. Block the release. |
 | Every forecast equals the market price | Anchoring collapse | Check the blind prompt assembly. This is R-01. |
 | Deploy succeeded but the URL 502s | Health check failing, or `PORT` not respected | Check Render logs. The app must bind `process.env.PORT`. |
+| Logs say "Ready", deploy says live, every request still 502s | The server bound to the container hostname instead of every interface | Look at the `Local:` line in the logs. If it names the pod (`srv-...-vrhhm:10000`) rather than `0.0.0.0`, the bind address is wrong. **Do not pass `process.env.HOSTNAME` to the server.** It is a POSIX variable holding the machine's *name*, not an address, and containers usually map that name to `127.0.0.1`, so the process listens on loopback and the proxy cannot reach it. `scripts/start.mjs` hardcodes `0.0.0.0` for this reason; `BIND_HOST` overrides it. Hit on the very first deploy, 2026-08-16. |
 
 ## Observability
 
