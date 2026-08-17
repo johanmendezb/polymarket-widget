@@ -98,6 +98,9 @@ Full strategy: [`docs/07-testing/TEST_STRATEGY.md`](docs/07-testing/TEST_STRATEG
 <img width="650" height="1149" alt="image" src="https://github.com/user-attachments/assets/e5303c6a-30b0-448c-b5e0-0a93afa84b0c" />
 
 
+https://github.com/user-attachments/assets/c29fa9b7-d658-40a7-9f61-a4aae7630246
+
+
 ### Prompts
 
 Every prompt is in [`prompts/`](prompts/), and it is part of the submission rather than an appendix.
