@@ -1,3 +1,10 @@
 // Cross-cutting helpers: formatting, errors.
-// Imports nothing internal. Populated as needed.
-export {};
+// May import: domain.
+
+export {
+  jsonError,
+  jsonSuccess,
+  type ErrorEnvelope,
+  type Meta,
+  type SuccessEnvelope,
+} from './api-envelope';
