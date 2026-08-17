@@ -121,3 +121,38 @@ Any addition to challenge scope must answer, here, in writing:
 5. Which documents change?
 
 An addition with no corresponding removal is refused by default.
+
+## 2026-08-17 — all nine epics delivered
+
+Nine epics merged to `main`. Staging live at https://polymarket-widget.onrender.com and verified
+with a real model call, not a mock.
+
+**Gate:** 455 unit tests, 14 E2E, 12 live contract assertions, zero lint warnings, zero typecheck
+errors, `src/simulation` at 100% branch coverage, no secret in the deployed client bundle.
+
+**Five written claims the live API disproved**, all caught before the read path was written:
+bids arrive ascending (not descending, as the domain model said); the specified secret-leak grep
+could not have caught the leak it was written for; `Python-urllib/<version>` is blocklisted rather
+than a missing User-Agent; both hosts do send permissive CORS, but only when an `Origin` header is
+present; per-market fee fields are usually absent, so the category fallback is the common path.
+Two of the five were the orchestrator's own errors, caught by workers who checked rather than
+complied.
+
+**Three failures that only appear in the packaged build**, each found before it mattered: the
+first deploy bound to the container hostname and served 502s while reporting itself healthy; the
+runtime prompts would not have survived a standalone build; and the E2E suite had been red since
+E4 landed because Playwright was in neither `pnpm test` nor CI. The last is now in the aggregate
+`ci` gate that branch protection requires.
+
+**One bug the first live model calls found:** the sampler offered `web_search` alongside the
+forced `submit_forecast` tool on a one-shot request, so on thin-coverage markets the model opened
+with a search that nothing fulfilled and the forecast never arrived. Fixed by removing the tool;
+re-enabling it means implementing the tool loop.
+
+**Cost:** a forecast was six `claude-opus-5` calls with no cache. Added a route-level forecast
+cache plus `ANTHROPIC_MODEL`, `AI_SAMPLES` and `AI_ANCHORED` controls. Staging runs the cheap
+configuration, which is why `dispersion` reads 0 there.
+
+**Not done, deliberately:** the timed twice-through demo rehearsal and a pre-identified
+gate-passing market, both of which cost API credit to establish. `prompts/build/00` keeps its
+placeholder because only the owner holds that text.

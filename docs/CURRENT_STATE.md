@@ -1,27 +1,26 @@
 # CURRENT_STATE
 
 ```yaml
-phase: PHASE_1_BUILD
-milestone: M2_DOMAIN_READ_PATH_AND_SHELL
+phase: PHASE_2_DELIVERED
+milestone: M3_ALL_EPICS_MERGED
 health: GREEN
-deadline: none (the 48h clock in ROADMAP.md is a narrative frame; owner confirmed 2026-08-16 that quality beats speed and nothing is cut for time)
+deadline: none (the 48h clock in ROADMAP.md is a narrative frame; owner confirmed quality beats speed)
 t0: 2026-08-15
-active_epic: E4 (widget states) and E5 (AI layer)
-active_task: T4.2-T4.5 and T5.3, two workers in parallel
+active_epic: none - all nine merged
+active_task: none
 blocked_by: []
-last_completed: E3 merged. T4.1 (shell), T5.1 (blind prompt) and T5.2 (client + k-sampling) also done, on branches.
-next_action: Review T4.2-T4.5 and T5.3 as they land. E4 and E5 are QA-gated, so they stop for the owner rather than self-merging. Then T5.4 (AI panel, needs T4.4), then E6 E2E, E7 polish, E8 credibility, E9 demo.
+last_completed: E9 (all nine epics on main, staging verified with a real model call)
+next_action: Two owner actions remain, neither blocking - paste the master orchestrator prompt into prompts/build/00-master-orchestrator.md, and set the Render health check path to /api/health. Before any demo, run pnpm warm and raise AI_SAMPLES/AI_ANCHORED back up.
 critical_risks:
-  - R-01 anchoring collapse in the AI layer
-  - R-02 scope creep past the time budget
-  - R-03 shipping a cost preview without the taker fee
+  - R-01 anchoring collapse - the blind-vs-anchored check is currently OFF on staging (AI_ANCHORED=0) to save credit
+  - R-03 fee shown without the taker fee - mitigated, category fallback labelled estimated
 open_decisions: []
-tests_status: GREEN_310_UNIT_1_E2E (plus a separate 12-assertion live contract suite, `pnpm test:live`, run manually against production and structurally excluded from CI)
-deployment_status: LIVE https://polymarket-widget.onrender.com (verified 2026-08-16, commit 387d828)
+tests_status: GREEN_455_UNIT_14_E2E_12_LIVE (src/simulation at 100% branch coverage)
+deployment_status: LIVE https://polymarket-widget.onrender.com serving main, real forecast verified 2026-08-17
 environment: staging_only_render
 awaiting_qa: []
-assumed_accepted_note: E1 self-merged under the hybrid gate agreed with the owner 2026-08-16; E4, E5, E7, E8, E9 stop for QA.
-assumed_accepted: [E1, E2, E3]
+assumed_accepted: [E1, E2, E3, E6]
+owner_accepted: [E4, E5, E7, E8, E9]
 ```
 
 ---
