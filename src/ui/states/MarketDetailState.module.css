@@ -195,27 +195,6 @@
   margin: 0 0 4px;
 }
 
-.aiPanel {
-  border: 1px dashed light-dark(#d1d5db, #374151);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-
-.aiPanel button {
-  background: none;
-  border: none;
-  color: light-dark(#4338ca, #a5b4fc);
-  cursor: pointer;
-  font-weight: 600;
-  padding: 0;
-}
-
-.aiPlaceholder {
-  margin: 8px 0 0;
-  font-size: 0.82rem;
-  color: light-dark(#4b5563, #9ca3af);
-}
-
 @container widget-shell (min-width: 640px) {
   .probability {
     font-size: 2.75rem;

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { asPrice, priceValue, sharesValue, type Market, type MarketOutcome, type Price } from '@/domain';
 
+import { AiPanel } from '../ai/AiPanel';
 import { useBook } from '../hooks/useBook';
 import { useHistory } from '../hooks/useHistory';
 import { useMarket } from '../hooks/useMarket';
@@ -61,7 +62,6 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
   const [activeIndex, setActiveIndex] = useState(0);
   const [showResolution, setShowResolution] = useState(false);
   const [showOrderBook, setShowOrderBook] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
   const [pulsing, setPulsing] = useState(false);
   const prevPriceRef = useRef<number | null>(null);
 
@@ -275,24 +275,13 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         ) : null}
       </div>
 
-      <div className={styles.aiPanel}>
-        <button
-          type="button"
-          aria-expanded={aiOpen}
-          onClick={() => {
-            setAiOpen((v) => !v);
-          }}
-        >
-          Get a second opinion
-        </button>
-        {aiOpen ? (
-          <p className={styles.aiPlaceholder}>
-            AI-assisted second opinions are coming in a future update. This panel will show a blind model
-            estimate with dispersion, dated evidence, and a gate verdict — always in its own visual
-            register, never blended into the market price above.
-          </p>
-        ) : null}
-      </div>
+      {outcomes[activeIndex] !== undefined ? (
+        <AiPanel
+          marketId={market.id}
+          tokenId={outcomes[activeIndex].tokenId}
+          outcomeLabel={outcomes[activeIndex].label}
+        />
+      ) : null}
     </div>
   );
 }

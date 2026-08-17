@@ -50,3 +50,18 @@ export function formatCloseDate(iso: string | null): string {
   if (Number.isNaN(date.getTime())) return 'no close date set';
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
+
+/** An evidence item's `publishedAt`. `null` renders as "undated" — never silently dropped. */
+export function formatEvidenceDate(iso: string | null): string {
+  if (iso === null) return 'undated';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'undated';
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+/** A forecast's `createdAt`, for the provenance footer. */
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
