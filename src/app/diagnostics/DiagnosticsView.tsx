@@ -17,6 +17,7 @@ import type {
   HistogramDiagnostic,
   WaterfallDiagnostic,
 } from '../api/_diagnostics';
+import styles from './DiagnosticsView.module.css';
 
 function formatPct(value: number, digits = 1): string {
   return `${(value * 100).toFixed(digits)}%`;
@@ -24,7 +25,7 @@ function formatPct(value: number, digits = 1): string {
 
 function SampleCount({ n, noun = 'entries' }: { readonly n: number; readonly noun?: string }): ReactElement {
   return (
-    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+    <span className={styles.sampleCount}>
       N = {n} {noun}
     </span>
   );
@@ -32,11 +33,9 @@ function SampleCount({ n, noun = 'entries' }: { readonly n: number; readonly nou
 
 function Methodology({ children }: { readonly children: ReactNode }): ReactElement {
   return (
-    <details className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-      <summary className="cursor-pointer select-none font-medium text-neutral-700 dark:text-neutral-200">
-        How this is computed
-      </summary>
-      <div className="mt-1 pl-4">{children}</div>
+    <details className={styles.methodology}>
+      <summary>How this is computed</summary>
+      <div className={styles.methodologyBody}>{children}</div>
     </details>
   );
 }
@@ -47,27 +46,29 @@ function Panel({
   noun,
   children,
   methodology,
+  variant = 'default',
 }: {
   readonly title: string;
   readonly n: number;
   readonly noun?: string;
   readonly children: ReactNode;
   readonly methodology: ReactNode;
+  readonly variant?: 'default' | 'cost';
 }): ReactElement {
   return (
-    <section className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-base font-semibold">{title}</h2>
+    <section className={variant === 'cost' ? `${styles.box} ${styles.boxCost}` : styles.box}>
+      <div className={styles.boxHeader}>
+        <h2 className={styles.boxTitle}>{title}</h2>
         <SampleCount n={n} noun={noun} />
       </div>
-      <div className="mt-3">{children}</div>
+      <div className={styles.boxBody}>{children}</div>
       <Methodology>{methodology}</Methodology>
     </section>
   );
 }
 
 function EmptyDiagnostic({ reason }: { readonly reason: string }): ReactElement {
-  return <p className="text-sm text-neutral-500 dark:text-neutral-400">{reason}</p>;
+  return <p className={styles.emptyDiagnostic}>{reason}</p>;
 }
 
 function HistogramTable({ histogram }: { readonly histogram: HistogramDiagnostic }): ReactElement {
@@ -75,18 +76,20 @@ function HistogramTable({ histogram }: { readonly histogram: HistogramDiagnostic
     return <EmptyDiagnostic reason="No entries with this data yet." />;
   }
   return (
-    <div className="space-y-1">
-      {histogram.mean !== null && <p className="text-sm">Mean: {histogram.mean.toFixed(4)}</p>}
-      <table className="w-full text-sm">
-        <tbody>
-          {histogram.bins.map((bin) => (
-            <tr key={bin.label} className="border-t border-neutral-100 dark:border-neutral-900">
-              <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">{bin.label}</td>
-              <td className="py-1 text-right font-mono">{bin.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      {histogram.mean !== null && <p className={styles.stat}>Mean: {histogram.mean.toFixed(4)}</p>}
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <tbody>
+            {histogram.bins.map((bin) => (
+              <tr key={bin.label}>
+                <td>{bin.label}</td>
+                <td className={styles.numCell}>{bin.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -98,26 +101,28 @@ function CoherenceTable({ diagnostic }: { readonly diagnostic: CoherenceDiagnost
     );
   }
   return (
-    <div className="space-y-2">
-      {diagnostic.meanAbsDelta !== null && <p className="text-sm">Mean |Σp − 1|: {diagnostic.meanAbsDelta.toFixed(4)}</p>}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-neutral-500 dark:text-neutral-400">
-            <th className="font-medium">Market</th>
-            <th className="font-medium">Outcomes</th>
-            <th className="text-right font-medium">|Σp − 1|</th>
-          </tr>
-        </thead>
-        <tbody>
-          {diagnostic.groups.map((group) => (
-            <tr key={group.marketId} className="border-t border-neutral-100 dark:border-neutral-900">
-              <td className="py-1 pr-4">{group.question}</td>
-              <td className="py-1 pr-4 font-mono">{group.outcomeCount}</td>
-              <td className="py-1 text-right font-mono">{group.absDelta.toFixed(4)}</td>
+    <div>
+      {diagnostic.meanAbsDelta !== null && <p className={styles.stat}>Mean |Σp − 1|: {diagnostic.meanAbsDelta.toFixed(4)}</p>}
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Outcomes</th>
+              <th className={styles.numCell}>|Σp − 1|</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {diagnostic.groups.map((group) => (
+              <tr key={group.marketId}>
+                <td>{group.question}</td>
+                <td>{group.outcomeCount}</td>
+                <td className={styles.numCell}>{group.absDelta.toFixed(4)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -127,21 +132,23 @@ function GateTable({ histogram }: { readonly histogram: GateHistogramDiagnostic 
     return <EmptyDiagnostic reason="No frozen entries yet." />;
   }
   return (
-    <div className="space-y-2">
-      <p className="text-sm">
-        CONSIDER: <span className="font-mono">{histogram.considerCount}</span> · NO_BET:{' '}
-        <span className="font-mono">{histogram.noBetCount}</span>
+    <div>
+      <p className={styles.stat}>
+        CONSIDER: <span className={styles.considerCount}>{histogram.considerCount}</span> · NO_BET:{' '}
+        <span className={styles.noBetCount}>{histogram.noBetCount}</span>
       </p>
-      <table className="w-full text-sm">
-        <tbody>
-          {histogram.reasonCounts.map((row) => (
-            <tr key={row.reason} className="border-t border-neutral-100 dark:border-neutral-900">
-              <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">{row.reason}</td>
-              <td className="py-1 text-right font-mono">{row.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <tbody>
+            {histogram.reasonCounts.map((row) => (
+              <tr key={row.reason}>
+                <td>{row.reason}</td>
+                <td className={styles.numCell}>{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -169,48 +176,51 @@ function WaterfallPanel({ waterfall }: { readonly waterfall: WaterfallDiagnostic
       title="Cost waterfall"
       n={1}
       noun="market (live)"
+      variant="cost"
       methodology={
         <p>
           Walks the current live order book and the market&apos;s own fee config — never the
           frozen freeze-time snapshot — for one representative market, at a $100 reference fill.
           Steps: market midpoint → best ask → average fill price (from walking the book) → fee
           per share → effective cost per share → surviving edge (blended probability minus
-          effective cost). See <code>docs/03-domain/ORDER_EXECUTION.md</code> §3. Because this
+          effective cost). See <code className={styles.codeInline}>docs/03-domain/ORDER_EXECUTION.md</code> §3. Because this
           recomputes against the current book, the edge shown can differ from the frozen{' '}
-          <code>Recommendation</code> at freeze time if the book has moved since.
+          <code className={styles.codeInline}>Recommendation</code> at freeze time if the book has moved since.
         </p>
       }
     >
-      <p className="mb-2 text-sm text-neutral-600 dark:text-neutral-300">{waterfall.question}</p>
-      <table className="w-full text-sm">
-        <tbody>
-          <tr className="border-t border-neutral-100 dark:border-neutral-900">
-            <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">Market midpoint</td>
-            <td className="py-1 text-right font-mono">{formatPct(priceValue(steps.marketMidpoint))}</td>
-          </tr>
-          <tr className="border-t border-neutral-100 dark:border-neutral-900">
-            <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">Best ask</td>
-            <td className="py-1 text-right font-mono">{formatPct(priceValue(steps.bestAsk))}</td>
-          </tr>
-          <tr className="border-t border-neutral-100 dark:border-neutral-900">
-            <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">Average fill price</td>
-            <td className="py-1 text-right font-mono">{formatPct(priceValue(steps.averageFillPrice))}</td>
-          </tr>
-          <tr className="border-t border-neutral-100 dark:border-neutral-900">
-            <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">Fee per share</td>
-            <td className="py-1 text-right font-mono">${usdcValue(steps.feePerShare).toFixed(5)}</td>
-          </tr>
-          <tr className="border-t border-neutral-100 dark:border-neutral-900">
-            <td className="py-1 pr-4 text-neutral-600 dark:text-neutral-300">Effective cost per share</td>
-            <td className="py-1 text-right font-mono">${usdcValue(steps.effectiveCostPerShare).toFixed(5)}</td>
-          </tr>
-          <tr className="border-t border-neutral-200 font-semibold dark:border-neutral-800">
-            <td className="py-1 pr-4">Surviving edge</td>
-            <td className="py-1 text-right font-mono">{waterfall.estimatedEdge.toFixed(4)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+      <p className={styles.waterfallQuestion}>{waterfall.question}</p>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <tbody>
+            <tr>
+              <td>Market midpoint</td>
+              <td className={styles.numCell}>{formatPct(priceValue(steps.marketMidpoint))}</td>
+            </tr>
+            <tr>
+              <td>Best ask</td>
+              <td className={styles.numCell}>{formatPct(priceValue(steps.bestAsk))}</td>
+            </tr>
+            <tr>
+              <td>Average fill price</td>
+              <td className={styles.numCell}>{formatPct(priceValue(steps.averageFillPrice))}</td>
+            </tr>
+            <tr>
+              <td>Fee per share</td>
+              <td className={styles.numCell}>${usdcValue(steps.feePerShare).toFixed(5)}</td>
+            </tr>
+            <tr>
+              <td>Effective cost per share</td>
+              <td className={styles.numCell}>${usdcValue(steps.effectiveCostPerShare).toFixed(5)}</td>
+            </tr>
+            <tr className={styles.totalRow}>
+              <td>Surviving edge</td>
+              <td className={styles.numCell}>{waterfall.estimatedEdge.toFixed(4)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className={styles.waterfallFootnote}>
         Fetched live at {waterfall.fetchedAt}. A negative edge is a real answer, not clamped to
         zero: it means the correct action is no bet.
       </p>
@@ -226,34 +236,32 @@ export function DiagnosticsView({
   readonly waterfall: WaterfallDiagnostic | null;
 }): ReactElement {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-      <header className="space-y-2">
-        <h1 className="text-xl font-bold">Resolution-free diagnostics</h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Resolution-free diagnostics</h1>
+        <p className={styles.subtitle}>
           Predictions are recorded and hashed before any resolution is known — not yet scored
           against an outcome. Nothing below claims or implies anything about this system&apos;s
           accuracy or profitability, or how it compares to the market. See{' '}
-          <code>docs/05-ai/EVALUATION.md</code> §B8 for the full claims policy.
+          <code className={styles.codeInline}>docs/05-ai/EVALUATION.md</code> §B8 for the full claims policy.
         </p>
       </header>
 
-      <section className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-        <h2 className="text-base font-semibold">Manifest</h2>
-        <p className="mt-1 text-sm">
+      <section className={styles.box}>
+        <h2 className={styles.boxTitle}>Manifest</h2>
+        <p className={styles.manifestNote}>
           <SampleCount n={report.entryCount} noun="frozen forecasts" />
         </p>
         {report.entryCount === 0 && (
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            No forecasts have been frozen yet. Run <code>pnpm freeze</code> to produce a manifest;
+          <p className={styles.manifestEmpty}>
+            No forecasts have been frozen yet. Run <code className={styles.codeInline}>pnpm freeze</code> to produce a manifest;
             every diagnostic below will read from it once it exists.
           </p>
         )}
         {report.manifestHash !== null && (
-          <p className="mt-2 break-all font-mono text-xs text-neutral-500 dark:text-neutral-400">
+          <p className={styles.hash}>
             SHA-256: {report.manifestHash.sha256}{' '}
-            <span
-              className={report.manifestHash.matchesFile ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}
-            >
+            <span className={report.manifestHash.matchesFile ? styles.hashMatch : styles.hashMismatch}>
               {report.manifestHash.matchesFile ? '✓ matches MANIFEST.sha256' : '✗ does not match MANIFEST.sha256'}
             </span>
           </p>
@@ -317,7 +325,7 @@ export function DiagnosticsView({
           <p>
             The interquartile range across each entry&apos;s k blind log-odds samples. Wide
             dispersion is the same signal the abstention gate&apos;s{' '}
-            <code>HIGH_DISPERSION_THRESHOLD</code> acts on per entry — this histogram shows it
+            <code className={styles.codeInline}>HIGH_DISPERSION_THRESHOLD</code> acts on per entry — this histogram shows it
             across the whole frozen set.
           </p>
         }
@@ -332,7 +340,7 @@ export function DiagnosticsView({
           <p>
             p̂_blind − market midpoint at freeze time, for every frozen entry. A spike at zero
             reads as no signal; fat tails read as overconfidence. This grounding is INFERRED, not
-            a verified published result — see <code>docs/05-ai/EVALUATION.md</code> §B7.
+            a verified published result — see <code className={styles.codeInline}>docs/05-ai/EVALUATION.md</code> §B7.
           </p>
         }
       >
