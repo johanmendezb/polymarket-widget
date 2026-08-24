@@ -102,6 +102,12 @@
   --text-lg-leading: 1.75rem;
   --text-xl-size: 1.5rem;
   --text-xl-leading: 2rem;
+  /* The hero step: the market's headline probability, and nothing else. Added
+     because the market-detail work reached for it and had to fake it with a
+     calc() off --text-xl-size — a scale you have to do arithmetic against is
+     not a scale. */
+  --text-2xl-size: 2.25rem;
+  --text-2xl-leading: 2.5rem;
 
   /* Every number in this product is compared against another number.
      Apply via `font-variant-numeric: var(--font-tabular);` or the
