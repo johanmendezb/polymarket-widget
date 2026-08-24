@@ -1,35 +1,45 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .backLink {
   align-self: flex-start;
   background: none;
   border: none;
-  color: light-dark(#2563eb, #60a5fa);
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 0;
-  font-size: 0.85rem;
+  padding: var(--space-1) 0;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.backLink:hover {
+  color: var(--text-primary);
 }
 
 .simNotice {
+  align-self: flex-start;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
   font-weight: 600;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: light-dark(#eef2ff, #1e2540);
-  color: light-dark(#4338ca, #a5b4fc);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-positive-bg);
+  color: var(--semantic-positive-fg);
 }
 
 .terminalBanner {
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: light-dark(#fee2e2, #3f1d1d);
-  color: light-dark(#991b1b, #fca5a5);
-  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--semantic-danger-bg);
+  color: var(--semantic-danger-fg);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
 }
 
 .visuallyHidden {
@@ -41,13 +51,16 @@
   white-space: nowrap;
 }
 
+/* Fieldset keeps the disabled-cascade semantics; its native border/legend
+   rendering is stripped so the visual box lives on .amountBox instead —
+   that is what stops the legend from sitting on top of a border line. */
 .amountBlock {
-  border: 1px solid light-dark(#e5e7eb, #262a33);
-  border-radius: 8px;
-  padding: 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .amountBlock:disabled,
@@ -56,173 +69,296 @@
 }
 
 .amountLabel {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: light-dark(#4b5563, #9ca3af);
+  margin: 0 0 var(--space-1);
   padding: 0;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.amountBox {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .amountRow {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .unitToggle {
-  display: flex;
-  border: 1px solid light-dark(#d1d5db, #374151);
-  border-radius: 6px;
+  display: inline-flex;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .unitToggle button {
   border: none;
-  background: light-dark(#f3f4f6, #1a1d23);
-  color: inherit;
-  padding: 8px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
   cursor: pointer;
 }
 
+.unitToggle button:hover:not([aria-pressed='true']) {
+  color: var(--text-primary);
+}
+
 .unitToggle button[aria-pressed='true'] {
-  background: light-dark(#dbeafe, #1e3a5f);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .amountInput {
   flex: 1;
+  min-width: 8ch;
   box-sizing: border-box;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid light-dark(#d1d5db, #374151);
-  background: light-dark(#ffffff, #111318);
-  color: inherit;
-  font-size: 1rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-size: var(--text-base-size);
+  line-height: var(--text-base-leading);
+  font-variant-numeric: var(--font-tabular);
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.amountInput:focus-visible {
+  border-color: var(--border-strong);
+}
+
+.amountInput::-webkit-outer-spin-button,
+.amountInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .presets {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .presets button {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid light-dark(#d1d5db, #374151);
-  background: light-dark(#f9fafb, #1a1d23);
-  color: inherit;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  color: var(--text-secondary);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
   cursor: pointer;
+}
+
+.presets button:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .staleBadge {
   margin: 0;
-  font-size: 0.8rem;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: light-dark(#fef3c7, #3f2f0f);
-  color: light-dark(#92400e, #fbbf24);
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning-fg);
+}
+
+.staleBadge button {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
 }
 
 .errorText {
   margin: 0;
-  font-size: 0.85rem;
-  color: light-dark(#991b1b, #fca5a5);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--semantic-danger-fg);
+}
+
+.errorText button {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
 }
 
 .freshness {
   margin: 0;
-  font-size: 0.75rem;
-  color: light-dark(#6b7280, #9ca3af);
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
+  color: var(--text-muted);
 }
 
+/* The cost ledger. Tinted with the cost register, not market's cool slate or
+   model's violet, so a reader can tell this is "what acting costs" on sight. */
 .previewLines {
   margin: 0;
-  border: 1px solid light-dark(#e5e7eb, #262a33);
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: var(--register-cost-bg);
+  border: 1px solid var(--register-cost-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .line {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 0.9rem;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
 }
 
 .line dt {
-  color: light-dark(#4b5563, #9ca3af);
+  color: var(--text-secondary);
 }
 
 .line dd {
   margin: 0;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: var(--font-tabular);
   text-align: right;
+  color: var(--register-cost-fg);
+  font-weight: 500;
+}
+
+/* The rule that separates the total from the lines that produced it. */
+.total {
+  border-top: 1px solid var(--register-cost-border);
+  padding-top: var(--space-2);
+  margin-top: var(--space-1);
+  font-weight: 600;
+}
+
+.total dd {
+  font-size: var(--text-base-size);
+  line-height: var(--text-base-leading);
 }
 
 .muted {
-  color: light-dark(#6b7280, #9ca3af);
-  font-size: 0.8em;
+  color: var(--text-muted);
+  font-size: var(--text-xs-size);
+}
+
+.estimatedTag {
+  display: inline-block;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning-fg);
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .profit {
-  color: light-dark(#15803d, #4ade80);
+  color: var(--semantic-positive-fg);
 }
 
 .loss {
-  color: light-dark(#b91c1c, #f87171);
+  color: var(--semantic-danger-fg);
 }
 
 .disclosure button {
   background: none;
   border: none;
-  color: light-dark(#2563eb, #60a5fa);
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 0;
-  font-size: 0.85rem;
+  padding: var(--space-1) 0;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.disclosure button:hover {
+  color: var(--text-primary);
 }
 
 .disclosureBody {
-  margin: 4px 0 0;
-  font-size: 0.85rem;
-  color: light-dark(#374151, #d1d5db);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--text-secondary);
 }
 
 .cta {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
   border: none;
-  background: light-dark(#2563eb, #3b82f6);
-  color: #ffffff;
-  font-size: 1rem;
+  background: var(--text-primary);
+  color: var(--surface-base);
+  font-size: var(--text-base-size);
+  line-height: var(--text-base-leading);
   font-weight: 600;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.cta:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
 }
 
 .cta:disabled {
-  background: light-dark(#9ca3af, #4b5563);
+  background: var(--border-strong);
+  color: var(--text-muted);
   cursor: not-allowed;
-}
-
-.cta:focus-visible {
-  outline: 2px solid light-dark(#1d4ed8, #93c5fd);
-  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .ctaReason {
-  margin: 6px 0 0;
-  font-size: 0.8rem;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
   text-align: center;
-  color: light-dark(#6b7280, #9ca3af);
+  color: var(--text-muted);
+}
+
+.ctaReasonError {
+  color: var(--semantic-danger-fg);
+  font-weight: 500;
 }
 
 @container widget-shell (min-width: 640px) {
   .previewLines {
-    padding: 14px 16px;
+    padding: var(--space-4) var(--space-5);
   }
 
   .line {
-    font-size: 0.95rem;
+    font-size: var(--text-base-size);
   }
 }
