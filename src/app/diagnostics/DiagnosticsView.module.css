@@ -1,0 +1,219 @@
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  color: var(--text-primary);
+  background: var(--surface-base);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-leading);
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--text-secondary);
+}
+
+.codeInline {
+  font-family: ui-monospace, monospace;
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  font-size: 0.9em;
+}
+
+.box {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: var(--surface-base);
+}
+
+/* The one register-bearing diagnostic: the cost waterfall walks an actual
+   fill, so it gets the ledger treatment, not the neutral analytical box. */
+.boxCost {
+  border-color: var(--register-cost-border);
+  background: var(--register-cost-bg);
+  color: var(--register-cost-fg);
+}
+
+.boxCost .boxTitle,
+.boxCost .methodology summary {
+  color: var(--register-cost-fg);
+}
+
+.boxCost .methodology,
+.boxCost .sampleCount {
+  color: var(--register-cost-fg);
+}
+
+.boxCost .table th,
+.boxCost .table td,
+.boxCost .numCell,
+.boxCost .totalRow td {
+  color: var(--register-cost-fg);
+  border-top-color: var(--register-cost-border);
+}
+
+.boxHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.boxTitle {
+  margin: 0;
+  font-size: var(--text-base-size);
+  font-weight: 600;
+}
+
+.sampleCount {
+  flex-shrink: 0;
+  font-size: var(--text-xs-size);
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: var(--font-tabular);
+}
+
+.boxBody {
+  margin-top: var(--space-3);
+}
+
+.manifestNote {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm-size);
+}
+
+.manifestEmpty {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm-size);
+  color: var(--text-muted);
+}
+
+.hash {
+  margin: var(--space-2) 0 0;
+  word-break: break-all;
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-xs-size);
+  color: var(--text-muted);
+}
+
+.hashMatch {
+  color: var(--semantic-positive-fg);
+}
+
+.hashMismatch {
+  color: var(--semantic-danger-fg);
+}
+
+.methodology {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm-size);
+  color: var(--text-secondary);
+}
+
+.methodology summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.methodologyBody {
+  margin-top: var(--space-1);
+  padding-left: var(--space-4);
+}
+
+.emptyDiagnostic {
+  margin: 0;
+  font-size: var(--text-sm-size);
+  color: var(--text-muted);
+}
+
+.stat {
+  margin: 0;
+  font-size: var(--text-sm-size);
+}
+
+.stat + .stat {
+  margin-top: var(--space-1);
+}
+
+.considerCount {
+  color: var(--semantic-positive-fg);
+  font-variant-numeric: var(--font-tabular);
+}
+
+.noBetCount {
+  color: var(--semantic-danger-fg);
+  font-variant-numeric: var(--font-tabular);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: var(--space-2);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm-size);
+  font-variant-numeric: var(--font-tabular);
+}
+
+.table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding-bottom: var(--space-1);
+}
+
+.table td {
+  padding: var(--space-1) var(--space-4) var(--space-1) 0;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.table td:last-child {
+  padding-right: 0;
+}
+
+.numCell {
+  text-align: right;
+  font-family: ui-monospace, monospace;
+  color: var(--text-primary);
+}
+
+.totalRow td {
+  border-top: 1px solid var(--border-strong);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.waterfallQuestion {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm-size);
+  color: var(--register-cost-fg);
+}
+
+.waterfallFootnote {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs-size);
+  color: var(--text-muted);
+}

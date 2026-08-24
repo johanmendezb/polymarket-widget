@@ -75,17 +75,15 @@ function EvidenceList({ evidence }: { readonly evidence: Forecast['evidence'] })
       {evidence.map((item, index) => (
         <li key={index} className={styles.evidenceItem}>
           <p className={styles.evidenceClaim}>{item.claim}</p>
-          <p className={styles.evidenceMeta}>
-            <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">
+          <div className={styles.evidenceMeta}>
+            <a className={styles.evidenceSource} href={item.sourceUrl} target="_blank" rel="noopener noreferrer">
               {item.sourceTitle}
             </a>
-            {' · '}
-            <span className={item.publishedAt === null ? styles.undated : undefined}>
+            <span className={item.publishedAt === null ? styles.undated : styles.evidenceDate}>
               {formatEvidenceDate(item.publishedAt)}
             </span>
-            {' · '}
             <span className={styles.supportsTag}>{item.supports}</span>
-          </p>
+          </div>
         </li>
       ))}
     </ul>
@@ -143,7 +141,13 @@ function SuccessView({ recommendation }: { readonly recommendation: Recommendati
       ) : null}
 
       <h4 className={styles.sectionHeading}>Gate</h4>
-      <p className={styles.verdictLabel}>{recommendation.verdict === 'CONSIDER' ? 'Consider' : 'No bet'}</p>
+      <p
+        className={`${styles.verdictLabel} ${
+          recommendation.verdict === 'CONSIDER' ? styles.verdictConsider : styles.verdictNoBet
+        }`}
+      >
+        {recommendation.verdict === 'CONSIDER' ? 'Consider' : 'No bet'}
+      </p>
       <p className={styles.verdictNote}>
         {recommendation.verdict === 'CONSIDER'
           ? 'The gate did not reject this market. This is a second opinion, not a signal to trust over the market price.'
@@ -198,6 +202,7 @@ const ERROR_COPY: Partial<Record<ErrorCode, string>> = {
 function ErrorView({ code, message, onRetry }: { readonly code: ErrorCode; readonly message?: string; readonly onRetry: () => void }) {
   return (
     <div className={styles.errorBlock} role="alert">
+      <span className={styles.errorCode}>{code}</span>
       <p>{ERROR_COPY[code] ?? message ?? 'AI unavailable right now.'}</p>
       <button type="button" onClick={onRetry}>
         Retry
