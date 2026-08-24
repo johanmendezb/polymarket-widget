@@ -5,11 +5,12 @@
  */
 import { priceValue, usdcValue, type Price, type Usdc } from '@/domain';
 
-/** `0.624` -> `"$0.62"`. Two decimal places, the unit the user actually spends. */
+/** `0.624` -> `"$0.62"`, `151830.333` -> `"$151,830.33"`. Always two decimals, always grouped —
+ *  the same `toLocaleString` convention every other number in this product uses. */
 export function formatUsdc(value: Usdc): string {
   const n = usdcValue(value);
   const sign = n < 0 ? '-' : '';
-  return `${sign}$${Math.abs(n).toFixed(2)}`;
+  return `${sign}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /** `0.624` -> `"62.4c"`. The order-preview convention for a per-share price. */

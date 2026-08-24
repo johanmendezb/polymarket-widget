@@ -1,6 +1,139 @@
 /* Tailwind v4 is CSS-first: no tailwind.config.ts, the theme lives here. */
 @import 'tailwindcss';
 
+/*
+ * ============================================================================
+ * DESIGN TOKENS — the register system
+ * ============================================================================
+ *
+ * This product's whole thesis is that a prediction market is three different
+ * numbers most interfaces blend into one: what the market believes, what the
+ * model estimates, and what it would cost you to act. These are the ONLY
+ * three colour registers in the system, besides plain neutral text:
+ *
+ *   MARKET  --register-market-*   what the crowd believes. Neutral slate,
+ *                                 authoritative, large tabular figures.
+ *   MODEL   --register-model-*    what the AI estimates. The one accent hue
+ *                                 (violet) in the whole product. Always used
+ *                                 inside its own tinted, bordered panel —
+ *                                 never bare on the page background.
+ *   COST    --register-cost-*     what acting would cost. A distinct "ledger"
+ *                                 neutral (warm stone, not market's cool
+ *                                 slate) — pair with tabular figures and
+ *                                 `--border-subtle` rules, not colour, to
+ *                                 read as a ledger.
+ *
+ * Each trio is `-fg` (text), `-bg` (tinted panel background) and `-border`.
+ * A reader should be able to tell which register a number belongs to without
+ * reading its label. NEVER let a market number use `--register-model-*` or
+ * vice versa — that mixing is the exact confusion this system exists to
+ * prevent. `--semantic-*` (positive/warning/danger) is a SEPARATE axis for
+ * status/validity, not for market/model/cost — do not reuse it for a
+ * register and do not reuse a register for status.
+ *
+ * Every colour is themed with `light-dark()` here, once. No module below
+ * this file should ever write a raw hex value — reach for a token instead,
+ * or add one here if the system is genuinely missing it.
+ * ============================================================================
+ */
+
 :root {
   color-scheme: light dark;
+
+  /* --- Colour: surfaces, borders, text ------------------------------------ */
+  --surface-base: light-dark(#ffffff, #0b0d10);
+  --surface-raised: light-dark(#f8fafc, #161b20);
+
+  --border-subtle: light-dark(#e2e8f0, #262b33);
+  --border-strong: light-dark(#cbd5e1, #3a414b);
+
+  --text-primary: light-dark(#111827, #f3f4f6);
+  --text-secondary: light-dark(#374151, #d1d5db);
+  --text-muted: light-dark(#5b6472, #9aa4b2);
+
+  /* --- Colour: registers (market / model / cost) -------------------------- */
+  --register-market-fg: light-dark(#1e293b, #e2e8f0);
+  --register-market-bg: light-dark(#f1f5f9, #1a2028);
+  --register-market-border: light-dark(#cbd5e1, #334155);
+
+  --register-model-fg: light-dark(#5b21b6, #c4b5fd);
+  --register-model-bg: light-dark(#f5f3ff, #221a35);
+  --register-model-border: light-dark(#ddd6fe, #4c3a7a);
+
+  --register-cost-fg: light-dark(#44403c, #e7e5e4);
+  --register-cost-bg: light-dark(#fafaf9, #1c1917);
+  --register-cost-border: light-dark(#d6d3d1, #44403c);
+
+  /* --- Colour: semantic status (not a register — validity/state only) ---- */
+  --semantic-positive-fg: light-dark(#166534, #86efac);
+  --semantic-positive-bg: light-dark(#f0fdf4, #112118);
+
+  --semantic-warning-fg: light-dark(#92400e, #fcd34d);
+  --semantic-warning-bg: light-dark(#fffbeb, #241c0a);
+
+  --semantic-danger-fg: light-dark(#991b1b, #fca5a5);
+  --semantic-danger-bg: light-dark(#fef2f2, #2a1414);
+
+  /* --- Space: 4px base scale ----------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- Radius: 3 steps ------------------------------------------------------ */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* --- Type: 5 steps, each with its line-height ---------------------------- */
+  --text-xs-size: 0.75rem;
+  --text-xs-leading: 1rem;
+  --text-sm-size: 0.875rem;
+  --text-sm-leading: 1.25rem;
+  --text-base-size: 1rem;
+  --text-base-leading: 1.5rem;
+  --text-lg-size: 1.125rem;
+  --text-lg-leading: 1.75rem;
+  --text-xl-size: 1.5rem;
+  --text-xl-leading: 2rem;
+
+  /* Every number in this product is compared against another number.
+     Apply via `font-variant-numeric: var(--font-tabular);` or the
+     `.tabular-figures` utility below. */
+  --font-tabular: tabular-nums;
+
+  /* --- Elevation: at most 2 shadow levels ----------------------------------- */
+  --shadow-sm: light-dark(0 1px 2px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(0, 0, 0, 0.4));
+  --shadow-md: light-dark(0 4px 12px rgba(15, 23, 42, 0.12), 0 4px 16px rgba(0, 0, 0, 0.5));
+
+  /* --- Focus: one ring token, used everywhere ------------------------------- */
+  --focus-ring: 2px solid light-dark(#2563eb, #60a5fa);
+}
+
+.tabular-figures {
+  font-variant-numeric: var(--font-tabular);
+}
+
+/* Focus rings must be MORE visible than the browser default, never less —
+   this is the one place that decides what "focused" looks like. */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
