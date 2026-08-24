@@ -19,6 +19,10 @@ export function ConfirmationState({ market, outcome, fill, onBackToMarkets }: Co
   return (
     <div className={styles.root}>
       <p className={styles.simBadge} role="status">
+        <svg className={styles.simBadgeIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M6 10.5 8.5 13 14 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
         Simulated. No funds moved.
       </p>
 
@@ -70,10 +74,10 @@ export function ConfirmationState({ market, outcome, fill, onBackToMarkets }: Co
         <ul className={styles.positionsList}>
           {positions.map((position) => (
             <li key={position.id} className={styles.positionRow}>
-              <span>{position.marketQuestion}</span>
-              <span>{position.outcomeLabel}</span>
-              <span>{formatShares(sharesValue(position.shares))} shares</span>
-              <span>{formatUsdc(position.totalCost)}</span>
+              <span className={styles.positionQuestion}>{position.marketQuestion}</span>
+              <span className={styles.positionOutcome}>{position.outcomeLabel}</span>
+              <span className={styles.positionFigure}>{formatShares(sharesValue(position.shares))} shares</span>
+              <span className={styles.positionFigure}>{formatUsdc(position.totalCost)}</span>
             </li>
           ))}
         </ul>

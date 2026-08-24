@@ -24,6 +24,43 @@
   background: var(--surface-raised);
 }
 
+.skeletonHero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.skeletonRing {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+.shimmer {
+  background: var(--surface-raised);
+  animation: shimmerPulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none;
+  }
+}
+
+@keyframes shimmerPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .errorPanel {
   padding: var(--space-4);
   border-radius: var(--radius-lg);
@@ -69,10 +106,72 @@
 
 .question {
   margin: 0;
-  font-size: var(--text-lg-size);
-  line-height: var(--text-lg-leading);
-  font-weight: 700;
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-leading);
+  font-weight: var(--text-display-weight);
+  letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
+}
+
+/* --- Hero card: the headline probability gets the same graphic presence
+   as the market list's ring, not just a number floating in a row. ------- */
+
+.heroCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroCard {
+    animation: heroEnter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+  }
+}
+
+@keyframes heroEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.heroMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* A market number rendered as a graphic — conic-gradient donut, masked to a
+   ring so the card's own background always shows through the hole. Market
+   register only; never the brand accent — see globals.css identity note. */
+.ringWrap {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--register-market-fg) calc(var(--ring-pct) * 1%), var(--register-market-border) 0);
+  -webkit-mask: radial-gradient(closest-side, transparent 68%, black 69%);
+  mask: radial-gradient(closest-side, transparent 68%, black 69%);
+  transition: background var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.ringMuted {
+  background: var(--border-subtle);
 }
 
 .priceBlock {
@@ -147,28 +246,42 @@
   overflow: hidden;
   flex: 1;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   background: var(--surface-base);
   color: var(--text-primary);
   font-weight: 600;
   cursor: pointer;
   text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .binaryButton:hover {
   border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.binaryButton:active {
+  transform: translateY(0);
 }
 
 .binaryButton[aria-checked='true'] {
-  border-color: var(--register-market-border);
+  border-color: var(--accent-subtle-border);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 3px var(--accent-subtle-bg);
 }
 
 .binaryFill {
   position: absolute;
   inset: 0;
   background: var(--register-market-bg);
-  transition: width 200ms ease;
+  transition: width var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .binaryButton[aria-checked='true'] .binaryFill {
@@ -206,11 +319,24 @@
   flex-direction: column;
   gap: var(--space-1);
   background: none;
-  border: none;
-  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
   cursor: pointer;
   text-align: left;
   color: var(--text-primary);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    background-color var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.barRow:hover {
+  background: var(--surface-raised);
+}
+
+.barRow[aria-checked='true'] {
+  border-color: var(--accent-subtle-border);
+  background: var(--accent-subtle-bg);
 }
 
 .barTrack {
@@ -223,7 +349,7 @@
 .barFill {
   height: 100%;
   background: var(--register-market-border);
-  transition: width 200ms ease;
+  transition: width var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .barRow[aria-checked='true'] .barFill {
@@ -247,8 +373,17 @@
 
 .disclosure {
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.disclosure:hover {
+  border-color: var(--border-strong);
 }
 
 .disclosureToggle {
@@ -258,7 +393,7 @@
   width: 100%;
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   padding: var(--space-1) 0;
   font-size: var(--text-sm-size);
@@ -267,13 +402,14 @@
 }
 
 .disclosureToggle:hover {
-  color: var(--text-primary);
+  color: var(--accent-fg);
 }
 
 .disclosureToggle::before {
   content: '▸';
   display: inline-block;
-  transition: transform 150ms ease;
+  color: var(--accent-fg);
+  transition: transform var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .disclosureToggle[aria-expanded='true']::before {
@@ -288,6 +424,23 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .disclosureBody {
+    animation: disclosureEnter var(--motion-duration-base) var(--motion-ease-standard) both;
+  }
+}
+
+@keyframes disclosureEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .risksNote {
@@ -312,6 +465,16 @@
 @container widget-shell (min-width: 640px) {
   .probability {
     font-size: calc(var(--text-2xl-size) * 1.22);
+  }
+
+  .ringWrap,
+  .skeletonRing {
+    width: 88px;
+    height: 88px;
+  }
+
+  .heroCard {
+    padding: var(--space-6);
   }
 
   .bookLevels {

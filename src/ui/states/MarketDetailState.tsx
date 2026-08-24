@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 
 import { asPrice, priceValue, sharesValue, type Market, type MarketOutcome, type Price } from '@/domain';
 
@@ -20,6 +20,10 @@ export interface MarketDetailStateProps {
 
 /** Spread wider than this shows the last trade price instead of the midpoint — polymarket-domain skill. */
 const WIDE_SPREAD_THRESHOLD = 0.1;
+
+interface RingStyle extends CSSProperties {
+  '--ring-pct': string;
+}
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -79,6 +83,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
 
   const wideSpread = market !== null && market.spread !== null && priceValue(market.spread) > WIDE_SPREAD_THRESHOLD;
   const displayPrice = market === null ? null : wideSpread ? market.lastTradePrice : (midpointOf(market) ?? market.outcomes[focusIndex]?.indicativePrice ?? null);
+  const ringStyle: RingStyle = { '--ring-pct': String(displayPrice !== null ? Math.round(priceValue(displayPrice) * 100) : 0) };
 
   useEffect(() => {
     if (displayPrice === null) return;
@@ -98,10 +103,13 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
 
   if (status === 'loading' && market === null) {
     return (
-      <div className={styles.root}>
-        <div className={styles.skeletonBlock} style={{ height: 28, width: '80%' }} />
-        <div className={styles.skeletonBlock} style={{ height: 56, width: '50%' }} />
-        <div className={styles.skeletonBlock} style={{ height: 80, width: '100%' }} />
+      <div className={styles.root} aria-hidden="true">
+        <div className={`${styles.skeletonBlock} ${styles.shimmer}`} style={{ height: 28, width: '80%' }} />
+        <div className={styles.skeletonHero}>
+          <div className={`${styles.skeletonRing} ${styles.shimmer}`} />
+          <div className={`${styles.skeletonBlock} ${styles.shimmer}`} style={{ height: 40, width: '40%' }} />
+        </div>
+        <div className={`${styles.skeletonBlock} ${styles.shimmer}`} style={{ height: 80, width: '100%' }} />
       </div>
     );
   }
@@ -164,22 +172,29 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         <p className={styles.negRiskBadge}>Only one outcome in this group can resolve YES</p>
       ) : null}
 
-      <div className={styles.priceBlock}>
-        <span className={pulsing ? `${styles.probability} ${styles.pulsing}` : styles.probability}>
-          {displayPrice !== null ? formatPercent(priceValue(displayPrice)) : '—'}
-        </span>
-        {displayPrice !== null ? <span className={styles.priceCents}>{formatPriceCents(displayPrice)}</span> : null}
+      <div className={styles.heroCard}>
+        <div className={styles.heroMain}>
+          <div className={styles.ringWrap} style={ringStyle} aria-hidden="true">
+            <div className={displayPrice !== null ? styles.ring : `${styles.ring} ${styles.ringMuted}`} />
+          </div>
+          <div className={styles.priceBlock}>
+            <span className={pulsing ? `${styles.probability} ${styles.pulsing}` : styles.probability}>
+              {displayPrice !== null ? formatPercent(priceValue(displayPrice)) : '—'}
+            </span>
+            {displayPrice !== null ? <span className={styles.priceCents}>{formatPriceCents(displayPrice)}</span> : null}
+          </div>
+        </div>
+
+        {fetchedAt !== null ? <p className={styles.freshness}>{formatFreshness(fetchedAt, now)}</p> : null}
+
+        {wideSpread ? (
+          <p className={styles.wideSpreadNotice}>
+            Spread is wider than 10c, so the price above is the last traded price, not the midpoint.
+          </p>
+        ) : null}
+
+        <Sparkline tokenId={outcomes[focusIndex]?.tokenId ?? outcomes[0]?.tokenId ?? ''} />
       </div>
-
-      {fetchedAt !== null ? <p className={styles.freshness}>{formatFreshness(fetchedAt, now)}</p> : null}
-
-      {wideSpread ? (
-        <p className={styles.wideSpreadNotice}>
-          Spread is wider than 10c, so the price above is the last traded price, not the midpoint.
-        </p>
-      ) : null}
-
-      <Sparkline tokenId={outcomes[focusIndex]?.tokenId ?? outcomes[0]?.tokenId ?? ''} />
 
       <div
         role="radiogroup"

@@ -81,12 +81,21 @@
 
 .amountBox {
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--surface-raised);
-  padding: var(--space-3);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.amountBox:focus-within {
+  border-color: var(--accent-subtle-border);
+  box-shadow: var(--shadow-md);
 }
 
 .amountRow {
@@ -96,21 +105,31 @@
   align-items: center;
 }
 
+/* A real segmented control — one shared track, the active segment lifted
+   above it — not two loose chips sitting next to each other. */
 .unitToggle {
   display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface-base);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  overflow: hidden;
 }
 
 .unitToggle button {
   border: none;
   background: transparent;
+  border-radius: calc(var(--radius-md) - 2px);
   color: var(--text-secondary);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
+  font-weight: 600;
   cursor: pointer;
+  transition:
+    background-color var(--motion-duration-base) var(--motion-ease-standard),
+    color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .unitToggle button:hover:not([aria-pressed='true']) {
@@ -118,9 +137,8 @@
 }
 
 .unitToggle button[aria-pressed='true'] {
-  background: var(--surface-base);
-  color: var(--text-primary);
-  font-weight: 600;
+  background: var(--accent-subtle-bg);
+  color: var(--accent-fg);
   box-shadow: var(--shadow-sm);
 }
 
@@ -138,10 +156,21 @@
   font-variant-numeric: var(--font-tabular);
   appearance: textfield;
   -moz-appearance: textfield;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.amountInput:hover {
+  border-color: var(--border-strong);
 }
 
 .amountInput:focus-visible {
-  border-color: var(--border-strong);
+  border-color: var(--accent-strong);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 3px var(--accent-subtle-bg);
 }
 
 .amountInput::-webkit-outer-spin-button,
@@ -157,19 +186,31 @@
 }
 
 .presets button {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
   border: 1px solid var(--border-subtle);
   background: var(--surface-base);
   color: var(--text-secondary);
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
+  font-weight: 600;
   cursor: pointer;
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    color var(--motion-duration-base) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .presets button:hover {
   border-color: var(--border-strong);
   color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.presets button:active {
+  transform: translateY(0);
 }
 
 .staleBadge {
@@ -224,11 +265,29 @@
   margin: 0;
   background: var(--register-cost-bg);
   border: 1px solid var(--register-cost-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .previewLines {
+    animation: ledgerEnter var(--motion-duration-base) var(--motion-ease-standard) both;
+  }
+}
+
+@keyframes ledgerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .line {
@@ -317,20 +376,30 @@
 
 .cta {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-4);
   border-radius: var(--radius-md);
   border: none;
-  background: var(--text-primary);
-  color: var(--surface-base);
+  background: var(--accent-strong);
+  color: var(--accent-on-strong);
   font-size: var(--text-base-size);
   line-height: var(--text-base-leading);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .cta:hover:not(:disabled) {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.cta:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .cta:disabled {
@@ -355,7 +424,7 @@
 
 @container widget-shell (min-width: 640px) {
   .previewLines {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-5) var(--space-6);
   }
 
   .line {
