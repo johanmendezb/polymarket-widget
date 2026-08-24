@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState, type KeyboardEvent } from 'react';
+import { useId, useState, type CSSProperties, type KeyboardEvent } from 'react';
 
 import type { Market } from '@/domain';
 import { priceValue } from '@/domain';
@@ -17,6 +17,8 @@ export interface SearchStateProps {
 
 const MIN_QUERY_LENGTH = 2;
 const SKELETON_ROW_COUNT = 5;
+/** Entrance stagger caps out past this index so a long result list doesn't crawl in. */
+const MAX_STAGGER_INDEX = 8;
 
 /**
  * Category chips, per USER_FLOWS.md State A. The documented mechanism is a
@@ -36,21 +38,65 @@ const CATEGORY_CHIPS: readonly { readonly label: string; readonly query: string 
 /** Empty-query fallback so State A never shows a blank panel — USER_FLOWS.md State A. */
 const TRENDING_QUERY = CATEGORY_CHIPS[0]!.query;
 
-function outcomeSummary(market: Market): { readonly label: string; readonly pct: string | null } {
+interface RingStyle extends CSSProperties {
+  '--ring-pct': string;
+}
+
+interface LeadingOutcome {
+  readonly label: string;
+  readonly pctLabel: string | null;
+  readonly pctValue: number | null;
+  readonly extraCount: number;
+}
+
+/** The market's own belief — a market number, so it is styled with the market register, never the brand accent. */
+function leadingOutcome(market: Market): LeadingOutcome {
   const first = market.outcomes[0];
-  if (!first || first.indicativePrice === null) return { label: 'price unavailable', pct: null };
-  const pct = formatPercent(priceValue(first.indicativePrice), 0);
-  const extra = market.outcomes.length > 2 ? ` · +${market.outcomes.length - 1} more outcomes` : '';
-  return { label: `${first.label}${extra}`, pct };
+  const extraCount = market.outcomes.length > 1 ? market.outcomes.length - 1 : 0;
+  if (!first || first.indicativePrice === null) {
+    return { label: first?.label ?? 'price unavailable', pctLabel: null, pctValue: null, extraCount };
+  }
+  const value = priceValue(first.indicativePrice);
+  return { label: first.label, pctLabel: formatPercent(value, 0), pctValue: Math.round(value * 100), extraCount };
+}
+
+function ProbabilityRing({ outcome }: { readonly outcome: LeadingOutcome }) {
+  const ringStyle: RingStyle = { '--ring-pct': String(outcome.pctValue ?? 0) };
+  const ringClass = outcome.pctValue === null ? `${styles.ring} ${styles.ringMuted}` : styles.ring;
+  return (
+    <div className={styles.ringWrap}>
+      <div className={ringClass} style={ringStyle} aria-hidden="true" />
+      <span className={styles.ringValue}>{outcome.pctLabel ?? '—'}</span>
+    </div>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M13.5 13.5 17.5 17.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function SkeletonRows() {
   return (
     <ul className={styles.list} aria-hidden="true">
       {Array.from({ length: SKELETON_ROW_COUNT }, (_, i) => (
-        <li key={i} className={styles.skeletonRow}>
-          <div className={styles.skeletonLine} style={{ width: '70%' }} />
-          <div className={styles.skeletonLine} style={{ width: '40%' }} />
+        <li key={i} className={styles.skeletonCard}>
+          <div className={styles.cardMain}>
+            <div className={`${styles.skeletonRing} ${styles.shimmer}`} />
+            <div className={styles.skeletonBody}>
+              <div className={`${styles.skeletonLine} ${styles.shimmer}`} style={{ width: '92%' }} />
+              <div className={`${styles.skeletonLine} ${styles.shimmer}`} style={{ width: '55%' }} />
+            </div>
+          </div>
+          <div className={styles.chipsRow}>
+            <div className={`${styles.skeletonChip} ${styles.shimmer}`} />
+            <div className={`${styles.skeletonChip} ${styles.shimmer}`} />
+            <div className={`${styles.skeletonChip} ${styles.shimmer}`} />
+          </div>
         </li>
       ))}
     </ul>
@@ -102,24 +148,27 @@ export function SearchState({ query, onQueryChange, onSelectMarket }: SearchStat
       <label className={styles.searchLabel} htmlFor={`${listboxId}-input`}>
         Search markets
       </label>
-      <input
-        id={`${listboxId}-input`}
-        role="combobox"
-        aria-autocomplete="list"
-        aria-expanded={showResults}
-        aria-controls={listboxId}
-        aria-activedescendant={activeOptionId}
-        className={styles.input}
-        type="text"
-        placeholder="Search prediction markets…"
-        value={query}
-        onChange={(e) => {
-          onQueryChange(e.target.value);
-          setActiveIndex(-1);
-        }}
-        onKeyDown={handleKeyDown}
-        autoComplete="off"
-      />
+      <div className={styles.inputWrap}>
+        <SearchIcon />
+        <input
+          id={`${listboxId}-input`}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={showResults}
+          aria-controls={listboxId}
+          aria-activedescendant={activeOptionId}
+          className={styles.input}
+          type="text"
+          placeholder="Search prediction markets…"
+          value={query}
+          onChange={(e) => {
+            onQueryChange(e.target.value);
+            setActiveIndex(-1);
+          }}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+        />
+      </div>
 
       <div role="group" aria-label="Categories" className={styles.chips}>
         {CATEGORY_CHIPS.map((chip) => (
@@ -183,15 +232,18 @@ export function SearchState({ query, onQueryChange, onSelectMarket }: SearchStat
           ) : null}
           <ul id={listboxId} role="listbox" aria-label="Search results" className={styles.list}>
             {markets.map((market, index) => {
-              const summary = outcomeSummary(market);
+              const outcome = leadingOutcome(market);
+              const isActive = index === activeIndex;
+              const cardStyle: CSSProperties = { animationDelay: `${Math.min(index, MAX_STAGGER_INDEX) * 40}ms` };
               return (
                 <li
                   key={market.id}
                   id={`${listboxId}-option-${index}`}
                   role="option"
-                  aria-selected={index === activeIndex}
+                  aria-selected={isActive}
                   tabIndex={-1}
-                  className={index === activeIndex ? `${styles.row} ${styles.rowActive}` : styles.row}
+                  className={isActive ? `${styles.card} ${styles.cardActive}` : styles.card}
+                  style={cardStyle}
                   onClick={() => {
                     selectByIndex(index);
                   }}
@@ -199,14 +251,20 @@ export function SearchState({ query, onQueryChange, onSelectMarket }: SearchStat
                     setActiveIndex(index);
                   }}
                 >
-                  <p className={styles.question}>{market.question}</p>
-                  <div className={styles.meta}>
-                    <span>
-                      {summary.label}
-                      {summary.pct !== null ? <span className={styles.metaPct}>{summary.pct}</span> : null}
-                    </span>
-                    <span>{formatCompactUsd(market.volume24hUsd)} vol · 24h</span>
-                    <span>closes {formatCloseDate(market.endDate)}</span>
+                  <div className={styles.cardMain}>
+                    <ProbabilityRing outcome={outcome} />
+                    <div className={styles.cardBody}>
+                      <p className={styles.question}>{market.question}</p>
+                      <p className={styles.outcomeLabel}>
+                        {outcome.label}
+                        {outcome.extraCount > 0 ? <span className={styles.outcomeExtra}> · +{outcome.extraCount} more outcomes</span> : null}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.chipsRow}>
+                    {market.category !== null ? <span className={styles.metaChip}>{market.category}</span> : null}
+                    <span className={styles.metaChip}>{formatCompactUsd(market.volume24hUsd)} vol · 24h</span>
+                    <span className={styles.metaChip}>closes {formatCloseDate(market.endDate)}</span>
                   </div>
                 </li>
               );
