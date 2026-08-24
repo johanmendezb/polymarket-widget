@@ -6,21 +6,49 @@
 
 .simBadge {
   align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
   font-weight: 700;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
   background: var(--semantic-positive-bg);
   color: var(--semantic-positive-fg);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .simBadge {
+    animation: badgeEnter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+  }
+}
+
+@keyframes badgeEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.simBadgeIcon {
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 
 .question {
   margin: 0;
   font-size: var(--text-lg-size);
   line-height: var(--text-lg-leading);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: var(--tracking-snug);
   color: var(--text-primary);
 }
 
@@ -37,11 +65,30 @@
   margin: 0;
   background: var(--register-cost-bg);
   border: 1px solid var(--register-cost-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .summaryLines {
+    animation: ledgerEnter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+    animation-delay: 60ms;
+  }
+}
+
+@keyframes ledgerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .line {
@@ -101,11 +148,23 @@
   color: var(--text-primary);
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .backButton:hover {
   border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.backButton:active {
+  transform: translateY(0);
 }
 
 .positions {
@@ -135,24 +194,54 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .positionRow {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
   font-size: var(--text-xs-size);
   line-height: var(--text-xs-leading);
-  padding: var(--space-2) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3);
   background: var(--surface-raised);
   color: var(--text-secondary);
   font-variant-numeric: var(--font-tabular);
 }
 
+.positionRow + .positionRow {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.positionQuestion {
+  flex: 1 1 100%;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.positionOutcome {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--register-market-bg);
+  color: var(--register-market-fg);
+  font-weight: 600;
+}
+
+.positionFigure {
+  color: var(--text-secondary);
+}
+
 @container widget-shell (min-width: 640px) {
-  .positionRow {
-    justify-content: space-between;
+  .positionQuestion {
+    flex: 1 1 auto;
   }
 }

@@ -34,6 +34,30 @@
  * Every colour is themed with `light-dark()` here, once. No module below
  * this file should ever write a raw hex value — reach for a token instead,
  * or add one here if the system is genuinely missing it.
+ *
+ * --- IDENTITY LAYER (bold-identity pass) -----------------------------------
+ * `--accent-*` and `--gradient-accent` are the product's own brand chrome —
+ * buttons, focus glow, pressed chips, hover accents, entrance flourishes.
+ * They are NOT a fourth register: never colour a market/model/cost NUMBER
+ * with them. A probability is a market number — it stays on
+ * `--register-market-*` even inside the boldest graphic treatment; the
+ * accent is for the chrome around it, never the data itself.
+ * `--gradient-accent` is decorative only (bars, glows, backgrounds behind
+ * large reversed text) — check contrast before ever placing body text
+ * directly on it; its lighter stop reads under 3:1 against white.
+ * `--text-display-*` + `--tracking-*` are for headline-weight UI chrome
+ * (e.g. a card's leading question). `--text-2xl-*` stays reserved for the
+ * market's own headline probability figure per the note below it — don't
+ * reach for one when you mean the other.
+ * `--shadow-lg` is the interactive-lift shadow: hover/press states only,
+ * never static content (`--shadow-sm`/`--shadow-md` still cover that).
+ * `--motion-duration-*` / `--motion-ease-*` pair with the global
+ * `prefers-reduced-motion` block below, which already forces every
+ * animation/transition duration to ~0. A keyframed entrance (not just a
+ * hover transition) should still gate its `animation-name` behind
+ * `@media (prefers-reduced-motion: no-preference)` so a reduced-motion
+ * reader skips the whole effect — including any stagger delay — rather than
+ * seeing it snap through in zero time.
  * ============================================================================
  */
 
@@ -120,6 +144,35 @@
 
   /* --- Focus: one ring token, used everywhere ------------------------------- */
   --focus-ring: 2px solid light-dark(#2563eb, #60a5fa);
+
+  /* --- Colour: brand accent (chrome only — never a register) -------------- */
+  --accent-fg: light-dark(#1d4ed8, #93c5fd);
+  --accent-strong: light-dark(#1e40af, #2563eb);
+  --accent-subtle-bg: light-dark(#eff6ff, #10203a);
+  --accent-subtle-border: light-dark(#bfdbfe, #1e3a5f);
+  --accent-on-strong: #ffffff;
+  --gradient-accent: light-dark(
+    linear-gradient(135deg, #2563eb 0%, #06b6d4 100%),
+    linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%)
+  );
+
+  /* --- Type: display step — headline UI chrome, distinct from --text-2xl,
+     which stays reserved for the market's own headline probability -------- */
+  --text-display-size: 1.75rem;
+  --text-display-leading: 2.25rem;
+  --text-display-weight: 700;
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.01em;
+
+  /* --- Elevation: interactive lift, one step past --shadow-md -------------- */
+  --shadow-lg: light-dark(0 12px 28px rgba(15, 23, 42, 0.16), 0 12px 32px rgba(0, 0, 0, 0.55));
+
+  /* --- Motion: duration + easing — see the reduced-motion note above ------- */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 420ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tabular-figures {
