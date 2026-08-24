@@ -142,8 +142,8 @@ function SuccessView({ recommendation }: { readonly recommendation: Recommendati
 
       <h4 className={styles.sectionHeading}>Gate</h4>
       <p
-        className={`${styles.verdictLabel} ${
-          recommendation.verdict === 'CONSIDER' ? styles.verdictConsider : styles.verdictNoBet
+        className={`${styles.verdictBadge} ${
+          recommendation.verdict === 'CONSIDER' ? styles.verdictConsider : styles.verdictAbstain
         }`}
       >
         {recommendation.verdict === 'CONSIDER' ? 'Consider' : 'No bet'}
@@ -187,7 +187,7 @@ function SuccessView({ recommendation }: { readonly recommendation: Recommendati
 
 function NoEvidenceView() {
   return (
-    <div className={styles.resultBlock} role="status">
+    <div className={styles.noEvidenceBlock} role="status">
       <p className={styles.noEvidenceHeadline}>I could not find sources I trust for this question.</p>
       <p className={styles.emptyNote}>No usable evidence is a real answer, not an error — nothing else here is affected.</p>
     </div>
@@ -199,12 +199,50 @@ const ERROR_COPY: Partial<Record<ErrorCode, string>> = {
   AI_INVALID_OUTPUT: "The model's response didn't match the expected format, so nothing is shown.",
 };
 
+/**
+ * One glyph per error code so the three error states are distinguishable at
+ * a glance, not just by the code badge's text. Purely decorative — the
+ * message and code badge already carry the meaning — so it is `aria-hidden`.
+ */
+function ErrorIcon({ code }: { readonly code: ErrorCode }) {
+  if (code === 'AI_TIMEOUT') {
+    return (
+      <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M10 6v4l2.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (code === 'AI_INVALID_OUTPUT') {
+    return (
+      <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M10 3.5 17 15.5H3L10 3.5Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path d="M10 8.25v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="10" cy="13.25" r="0.9" fill="currentColor" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 6.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="10" cy="13.25" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
 function ErrorView({ code, message, onRetry }: { readonly code: ErrorCode; readonly message?: string; readonly onRetry: () => void }) {
   return (
     <div className={styles.errorBlock} role="alert">
+      <ErrorIcon code={code} />
       <span className={styles.errorCode}>{code}</span>
-      <p>{ERROR_COPY[code] ?? message ?? 'AI unavailable right now.'}</p>
-      <button type="button" onClick={onRetry}>
+      <p className={styles.errorMessage}>{ERROR_COPY[code] ?? message ?? 'AI unavailable right now.'}</p>
+      <button type="button" className={styles.errorRetry} onClick={onRetry}>
         Retry
       </button>
     </div>
@@ -234,7 +272,7 @@ export function AiPanel({ marketId, tokenId, outcomeLabel }: AiPanelProps) {
           Get a second opinion
         </button>
       ) : (
-        <>
+        <div className={styles.panelBody}>
           {/* "AI second opinion — Yes" read as a verdict of "Yes" sitting next
               to the title, which is exactly the confusion the three-register
               separation exists to prevent. The outcome being estimated is
@@ -251,7 +289,7 @@ export function AiPanel({ marketId, tokenId, outcomeLabel }: AiPanelProps) {
           {status === 'error' ? (
             <ErrorView code={error?.code ?? 'INTERNAL'} message={error?.message} onRetry={run} />
           ) : null}
-        </>
+        </div>
       )}
     </div>
   );
