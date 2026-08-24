@@ -156,3 +156,30 @@ configuration, which is why `dispersion` reads 0 there.
 **Not done, deliberately:** the timed twice-through demo rehearsal and a pre-identified
 gate-passing market, both of which cost API credit to establish. `prompts/build/00` keeps its
 placeholder because only the owner holds that text.
+
+## 2026-08-24 — visual system and identity
+
+Two passes (#17, #18). The first gave the widget a design-token system; the second gave it an
+identity and rebuilt the market list, after the owner's accurate verdict that the first was
+"better but not enough".
+
+**Two real bugs, found by screenshotting before designing.** Dark mode did not fill its container
+(`min-height: 100%` collapses when the parent has no height), and money and share formatting
+disagreed — `198,424.23` beside `$151830.33` in one table. Both invisible in code review.
+
+**The root cause of the inconsistency was structural:** 56 hardcoded hex values across 6 modules
+and zero tokens. Now ~60 semantically-named tokens and no raw hex in any module.
+
+**The three registers — market, model, cost — now carry the product thesis visually**, so a reader
+can tell which register a number belongs to without reading the label. That is load-bearing here:
+"AI second opinion — Yes" once read as a verdict because the registers looked alike.
+
+**The market list** went from a cramped row with a mid-sentence truncation and a 12px percentage
+to a card with the question at display weight and probability as a ring comparable at a glance.
+
+Held throughout: container queries only, no storage, both themes, AA contrast with axe at zero
+critical in CI, `prefers-reduced-motion` on every animation, no new dependencies, and no copy
+changed.
+
+**Not done:** visual regression testing. The before/after screenshots were a design tool, not a
+committed baseline, so a future restyle could drift without a test noticing.

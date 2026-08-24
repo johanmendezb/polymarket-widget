@@ -2,25 +2,32 @@
 
 ```yaml
 phase: PHASE_2_DELIVERED
-milestone: M3_ALL_EPICS_MERGED
+milestone: M4_VISUAL_SYSTEM
 health: GREEN
-deadline: none (the 48h clock in ROADMAP.md is a narrative frame; owner confirmed quality beats speed)
+deadline: none (the 48h clock in ROADMAP.md is a narrative frame)
 t0: 2026-08-15
-active_epic: none - all nine merged
+active_epic: none - all nine merged, plus a two-pass visual system
 active_task: none
 blocked_by: []
-last_completed: E9 (all nine epics on main, staging verified with a real model call)
-next_action: Two owner actions remain, neither blocking - paste the master orchestrator prompt into prompts/build/00-master-orchestrator.md, and set the Render health check path to /api/health. Before any demo, run pnpm warm and raise AI_SAMPLES/AI_ANCHORED back up.
+last_completed: Visual identity (PR #18) - token system, register identity, rebuilt market list
+next_action: |
+  Two owner actions remain, neither blocking:
+  (1) paste the master orchestrator prompt into prompts/build/00-master-orchestrator.md - only the
+      owner holds that text;
+  (2) set the Render health check path to /api/health in the dashboard - the MCP has no
+      update-service call.
+  Before any demo: run `pnpm warm` (cold start is ~30s), and pre-identify one market that PASSES
+  the gate to contrast with one it rejects. That last item is the honest gap in E9's T9.2.
 critical_risks:
-  - R-01 anchoring collapse - the blind-vs-anchored check is currently OFF on staging (AI_ANCHORED=0) to save credit
-  - R-03 fee shown without the taker fee - mitigated, category fallback labelled estimated
+  - R-01 anchoring collapse - the blind-vs-anchored diagnostic is ON in staging and fires a visible warning
+  - R-03 fee shown without the taker fee - mitigated; category fallback is labelled estimated
 open_decisions: []
-tests_status: GREEN_455_UNIT_14_E2E_12_LIVE (src/simulation at 100% branch coverage)
-deployment_status: LIVE https://polymarket-widget.onrender.com serving main, real forecast verified 2026-08-17
+tests_status: GREEN_464_UNIT_18_E2E_12_LIVE (src/simulation at 100% branch coverage)
+deployment_status: LIVE https://polymarket-widget.onrender.com serving main, real forecast verified
 environment: staging_only_render
-awaiting_qa: []
+ai_config: ANTHROPIC_MODEL=claude-opus-5, AI_SAMPLES=5, AI_ANCHORED=1, forecast cache 15m
 assumed_accepted: [E1, E2, E3, E6]
-owner_accepted: [E4, E5, E7, E8, E9]
+owner_accepted: [E4, E5, E7, E8, E9, VISUAL]
 ```
 
 ---
