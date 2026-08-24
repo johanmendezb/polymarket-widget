@@ -36,12 +36,12 @@ const CATEGORY_CHIPS: readonly { readonly label: string; readonly query: string 
 /** Empty-query fallback so State A never shows a blank panel — USER_FLOWS.md State A. */
 const TRENDING_QUERY = CATEGORY_CHIPS[0]!.query;
 
-function outcomeSummary(market: Market): string {
+function outcomeSummary(market: Market): { readonly label: string; readonly pct: string | null } {
   const first = market.outcomes[0];
-  if (!first || first.indicativePrice === null) return 'price unavailable';
+  if (!first || first.indicativePrice === null) return { label: 'price unavailable', pct: null };
   const pct = formatPercent(priceValue(first.indicativePrice), 0);
   const extra = market.outcomes.length > 2 ? ` · +${market.outcomes.length - 1} more outcomes` : '';
-  return `${first.label} ${pct}${extra}`;
+  return { label: `${first.label}${extra}`, pct };
 }
 
 function SkeletonRows() {
@@ -144,7 +144,7 @@ export function SearchState({ query, onQueryChange, onSelectMarket }: SearchStat
       {status === 'error' && !stale ? (
         <div className={styles.errorPanel} role="alert">
           <p>Search is temporarily unavailable.</p>
-          <button type="button" onClick={retry}>
+          <button type="button" className={styles.retryButton} onClick={retry}>
             Retry
           </button>
         </div>
@@ -176,35 +176,41 @@ export function SearchState({ query, onQueryChange, onSelectMarket }: SearchStat
           {stale ? (
             <p className={styles.staleBadge} role="status">
               Showing last known results — refresh failed.{' '}
-              <button type="button" onClick={retry}>
+              <button type="button" className={styles.retryButton} onClick={retry}>
                 Retry
               </button>
             </p>
           ) : null}
           <ul id={listboxId} role="listbox" aria-label="Search results" className={styles.list}>
-            {markets.map((market, index) => (
-              <li
-                key={market.id}
-                id={`${listboxId}-option-${index}`}
-                role="option"
-                aria-selected={index === activeIndex}
-                tabIndex={-1}
-                className={index === activeIndex ? `${styles.row} ${styles.rowActive}` : styles.row}
-                onClick={() => {
-                  selectByIndex(index);
-                }}
-                onMouseEnter={() => {
-                  setActiveIndex(index);
-                }}
-              >
-                <p className={styles.question}>{market.question}</p>
-                <div className={styles.meta}>
-                  <span>{outcomeSummary(market)}</span>
-                  <span>{formatCompactUsd(market.volume24hUsd)} vol · 24h</span>
-                  <span>closes {formatCloseDate(market.endDate)}</span>
-                </div>
-              </li>
-            ))}
+            {markets.map((market, index) => {
+              const summary = outcomeSummary(market);
+              return (
+                <li
+                  key={market.id}
+                  id={`${listboxId}-option-${index}`}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  tabIndex={-1}
+                  className={index === activeIndex ? `${styles.row} ${styles.rowActive}` : styles.row}
+                  onClick={() => {
+                    selectByIndex(index);
+                  }}
+                  onMouseEnter={() => {
+                    setActiveIndex(index);
+                  }}
+                >
+                  <p className={styles.question}>{market.question}</p>
+                  <div className={styles.meta}>
+                    <span>
+                      {summary.label}
+                      {summary.pct !== null ? <span className={styles.metaPct}>{summary.pct}</span> : null}
+                    </span>
+                    <span>{formatCompactUsd(market.volume24hUsd)} vol · 24h</span>
+                    <span>closes {formatCloseDate(market.endDate)}</span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       ) : null}

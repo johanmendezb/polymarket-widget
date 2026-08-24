@@ -45,6 +45,30 @@ test.describe('container queries drive layout, never the viewport', () => {
   });
 });
 
+test.describe('the shell fills its container at any content height', () => {
+  // `.shell` used `min-height: 100%`, which collapses when the parent has no
+  // definite height — dark mode painted only the content area and left the
+  // rest of the iframe white below it. Proven at both required widths.
+  for (const theme of ['light', 'dark'] as const) {
+    for (const [width, height] of [
+      [380, 600],
+      [1200, 900],
+    ] as const) {
+      test(`theme=${theme} at ${width}px fills the ${height}px-tall viewport`, async ({
+        page,
+      }) => {
+        await installApiMocks(page);
+        await page.setViewportSize({ width, height });
+        await page.goto(`/widget?theme=${theme}`);
+
+        const shell = page.getByTestId('widget-shell');
+        const box = await shell.boundingBox();
+        expect(box?.height).toBeGreaterThanOrEqual(height);
+      });
+    }
+  }
+});
+
 test.describe('theme parameter', () => {
   test('light renders a light color-scheme and background', async ({ page }) => {
     await installApiMocks(page);

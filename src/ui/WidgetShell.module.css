@@ -10,14 +10,26 @@
 .shell {
   container-type: inline-size;
   container-name: widget-shell;
-  min-height: 100%;
-  background: light-dark(#ffffff, #0b0d10);
-  color: light-dark(#111827, #f3f4f6);
+  /*
+   * `min-height: 100%` collapses when the parent (html/body, unstyled) has no
+   * definite height of its own, so the dark surface stopped at the content
+   * and left the rest of the iframe white. A standalone widget page IS its
+   * own top-level browsing context (the iframe embed is its own viewport),
+   * so `dvh` resolves against that — not the host page — and fills it at any
+   * content height without assuming anything about the host. `vh` first as a
+   * fallback for engines that don't parse `dvh`.
+   */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
 }
 
 .frame {
   box-sizing: border-box;
-  padding: 16px;
+  padding: var(--space-4);
   /* Fluid type driven by the container's own inline size (cqi), per UX_RESEARCH.md §2.3d. */
   font-size: clamp(0.875rem, 0.75rem + 0.5cqi, 1rem);
 }
@@ -27,6 +39,6 @@
   .frame {
     max-width: 640px;
     margin-inline: auto;
-    padding: 24px;
+    padding: var(--space-6);
   }
 }

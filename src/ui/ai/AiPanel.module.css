@@ -1,58 +1,78 @@
+/*
+ * The AI panel is the MODEL register's home: a bounded, tinted panel using
+ * --register-model-* throughout, distinct from the market data around it.
+ * See globals.css's register-system comment before touching any colour here.
+ */
+
 .root {
-  border: 1px solid light-dark(#ddd6fe, #3730a3);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: light-dark(#faf9ff, #17152a);
+  border: 1px solid var(--register-model-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  background: var(--register-model-bg);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .toggle {
   align-self: flex-start;
-  background: none;
-  border: none;
-  color: light-dark(#6d28d9, #c4b5fd);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--surface-base);
+  border: 1px solid var(--register-model-border);
+  border-radius: var(--radius-md);
+  color: var(--register-model-fg);
   cursor: pointer;
   font-weight: 600;
-  padding: 0;
-  font-size: 0.85rem;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+}
+
+.toggle:hover {
+  background: var(--register-model-bg);
+  box-shadow: var(--shadow-sm);
 }
 
 .heading {
   margin: 0;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: light-dark(#6d28d9, #c4b5fd);
+  font-weight: 700;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--register-model-fg);
 }
 
 .headingContext {
-  margin: 0.15rem 0 0;
-  font-size: 0.75rem;
+  margin: 0;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-leading);
   /* Deliberately quieter than .heading: this names which outcome is being
      estimated, and must not read as the estimate itself. */
-  color: light-dark(#57534e, #a8a29e);
+  color: var(--text-muted);
 }
 
 .phase {
   margin: 0;
-  font-size: 0.82rem;
-  color: light-dark(#6b7280, #9ca3af);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--text-muted);
 }
 
 .resultBlock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .sectionHeading {
-  margin: 4px 0 0;
-  font-size: 0.72rem;
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs-size);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: light-dark(#6b7280, #9ca3af);
+  color: var(--text-muted);
 }
 
 .evidenceList {
@@ -61,96 +81,131 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .evidenceItem {
-  border-left: 2px solid light-dark(#ddd6fe, #3730a3);
-  padding-left: 8px;
+  border-left: 2px solid var(--register-model-border);
+  padding-left: var(--space-2);
 }
 
 .evidenceClaim {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-leading);
+  color: var(--text-primary);
 }
 
 .evidenceMeta {
-  margin: 2px 0 0;
-  font-size: 0.75rem;
-  color: light-dark(#6b7280, #9ca3af);
+  margin: var(--space-1) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--text-xs-size);
+  color: var(--text-muted);
 }
 
-.evidenceMeta a {
-  color: light-dark(#6d28d9, #c4b5fd);
+.evidenceSource {
+  color: var(--register-model-fg);
+  font-weight: 600;
 }
 
+.evidenceDate {
+  color: var(--text-muted);
+}
+
+/* Disclosed, not broken: a quiet neutral chip, never the warning/danger
+   palette — an undated source is a stated fact about the evidence, not a
+   finding that something is wrong. */
 .undated {
-  color: light-dark(#92400e, #fbbf24);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
   font-weight: 600;
 }
 
 .supportsTag {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  background: var(--surface-raised);
   text-transform: uppercase;
   font-size: 0.68rem;
   letter-spacing: 0.03em;
+  color: var(--text-secondary);
 }
 
 .emptyNote {
   margin: 0;
-  font-size: 0.82rem;
-  color: light-dark(#6b7280, #9ca3af);
+  font-size: var(--text-sm-size);
+  color: var(--text-muted);
 }
 
 /*
- * The "secondary register" for the model's number: smaller, a different
- * colour family (violet, not the market price's blue/grey), always with the
- * market number alongside as plain text — never the same visual weight.
+ * The estimate range is the panel's centrepiece: real typographic weight,
+ * tabular figures, and `vs. market …` kept clearly subordinate underneath.
  */
 .estimateBlock {
-  background: light-dark(#f3f0ff, #201c3d);
-  border-radius: 6px;
-  padding: 8px 10px;
+  background: var(--surface-base);
+  border: 1px solid var(--register-model-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
 }
 
 .estimateLabel {
   margin: 0;
-  font-size: 0.72rem;
-  color: light-dark(#6d28d9, #c4b5fd);
+  font-size: var(--text-xs-size);
+  color: var(--register-model-fg);
 }
 
 .estimateRange {
-  margin: 2px 0 0;
-  font-size: 1.35rem;
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-leading);
   font-weight: 700;
-  color: light-dark(#5b21b6, #ddd6fe);
-  font-variant-numeric: tabular-nums;
+  color: var(--register-model-fg);
+  font-variant-numeric: var(--font-tabular);
 }
 
 .estimateMeta {
-  margin: 2px 0 0;
-  font-size: 0.75rem;
-  color: light-dark(#6b7280, #9ca3af);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs-size);
+  color: var(--text-muted);
 }
 
+/* A genuine finding when it fires — a considered caution, not an error
+   banner, so it uses the warning register, never danger. */
 .anchoringWarning {
   margin: 0;
-  font-size: 0.78rem;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: light-dark(#fef3c7, #3f2f0f);
-  color: light-dark(#92400e, #fbbf24);
+  font-size: var(--text-sm-size);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--semantic-warning-bg);
+  color: var(--semantic-warning-fg);
 }
 
 .verdictLabel {
   margin: 0;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--text-base-size);
+}
+
+.verdictConsider {
+  color: var(--semantic-positive-fg);
+}
+
+.verdictNoBet {
+  color: var(--semantic-danger-fg);
 }
 
 .verdictNote {
-  margin: 2px 0 0;
-  font-size: 0.78rem;
-  color: light-dark(#6b7280, #9ca3af);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm-size);
+  color: var(--text-muted);
 }
 
 .reasonList {
@@ -159,71 +214,106 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .reasonDetails summary {
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: var(--text-sm-size);
   font-weight: 600;
-  color: light-dark(#6d28d9, #c4b5fd);
+  color: var(--text-primary);
 }
 
 .reasonJustification {
-  margin: 2px 0 0 16px;
-  font-size: 0.78rem;
-  color: light-dark(#374151, #d1d5db);
+  margin: var(--space-1) 0 0 var(--space-4);
+  font-size: var(--text-sm-size);
+  color: var(--text-secondary);
 }
 
 .noEvidenceHeadline {
   margin: 0;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--text-base-size);
+  color: var(--text-primary);
 }
 
+/*
+ * The provenance footer is what makes a forecast a measurement rather than
+ * a claim — legible and orderly at AA contrast, even at --text-xs-size.
+ */
 .provenance {
-  margin: 4px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid light-dark(#ede9fe, #2e2a52);
+  margin: var(--space-1) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--register-model-border);
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  font-size: 0.72rem;
-  color: light-dark(#6b7280, #9ca3af);
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-xs-size);
 }
 
 .provenance div {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .provenance dt {
   font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .provenance dd {
   margin: 0;
+  color: var(--text-muted);
+  font-variant-numeric: var(--font-tabular);
 }
 
+/*
+ * AI_TIMEOUT, AI_INVALID_OUTPUT and the INTERNAL fallback all land here.
+ * They already carry distinct copy (see ERROR_COPY); the error code badge
+ * adds a second, visual distinction between them without inventing new text.
+ */
 .errorBlock {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.82rem;
-  color: light-dark(#991b1b, #fca5a5);
+  gap: var(--space-2);
+  font-size: var(--text-sm-size);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--semantic-danger-bg);
+  color: var(--semantic-danger-fg);
+}
+
+.errorCode {
+  flex-shrink: 0;
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-xs-size);
+  font-weight: 700;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
 }
 
 .errorBlock button {
   border: 1px solid currentColor;
   background: none;
   color: inherit;
-  border-radius: 6px;
-  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs-size);
+  font-weight: 600;
   cursor: pointer;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 @container widget-shell (min-width: 640px) {
   .estimateRange {
-    font-size: 1.6rem;
+    font-size: calc(var(--text-xl-size) * 1.15);
+  }
+
+  .provenance {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-4);
   }
 }

@@ -33,20 +33,24 @@ import { goldenMarket } from './fixtures/golden';
  *   averagePrice = 150,000 / 198,424.226883... = 0.755956076...   -> "75.6c" (best "75.0c")
  *   fee = shares * 0.05 * p * (1-p), p = averagePrice
  *       = 198,424.226883 * 0.05 * 0.755956076 * 0.244043924
- *       = 1,830.32943 (rounded to 5dp)                            -> "$1830.33"
- *   totalCost = grossCost + fee = 151,830.32943                   -> "$151830.33"
- *   payoutIfWin = sharesFilled                                    -> "$198424.23"
- *   netProfitIfWin = payoutIfWin - totalCost = 46,593.897453...   -> "$46593.90"
+ *       = 1,830.32943 (rounded to 5dp)                            -> "$1,830.33"
+ *   totalCost = grossCost + fee = 151,830.32943                   -> "$151,830.33"
+ *   payoutIfWin = sharesFilled                                    -> "$198,424.23"
+ *   netProfitIfWin = payoutIfWin - totalCost = 46,593.897453...   -> "$46,593.90"
+ *
+ * formatUsdc groups thousands (toLocaleString) the same way formatShares
+ * already does — every money and quantity formatter in this product shares
+ * one grouping/decimal convention now. See src/ui/format.ts.
  */
 
 const EXPECTED = {
   shares: '198,424.23',
   avgPriceCents: '75.6c',
   topOfBookCents: '75.0c',
-  fee: '$1830.33',
-  totalCost: '$151830.33',
-  payout: '$198424.23',
-  netProfit: '$46593.90',
+  fee: '$1,830.33',
+  totalCost: '$151,830.33',
+  payout: '$198,424.23',
+  netProfit: '$46,593.90',
 } as const;
 
 test('golden path: search, AI second opinion, preview, confirm, position', async ({ page }) => {

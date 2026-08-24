@@ -114,7 +114,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         </button>
         <div className={styles.errorPanel} role="alert">
           <p>{error?.message ?? 'This market could not be loaded.'}</p>
-          <button type="button" onClick={retry}>
+          <button type="button" className={styles.retryButton} onClick={retry}>
             Retry
           </button>
         </div>
@@ -168,7 +168,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         <span className={pulsing ? `${styles.probability} ${styles.pulsing}` : styles.probability}>
           {displayPrice !== null ? formatPercent(priceValue(displayPrice)) : '—'}
         </span>
-        <span className={styles.priceCents}>{displayPrice !== null ? formatPriceCents(displayPrice) : ''}</span>
+        {displayPrice !== null ? <span className={styles.priceCents}>{formatPriceCents(displayPrice)}</span> : null}
       </div>
 
       {fetchedAt !== null ? <p className={styles.freshness}>{formatFreshness(fetchedAt, now)}</p> : null}
@@ -206,7 +206,11 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
             >
               {isBinary ? (
                 <>
-                  {outcome.label} {pct !== null ? formatPercent(pct, 0) : ''}
+                  <div className={styles.binaryFill} style={{ width: `${pct !== null ? pct * 100 : 0}%` }} />
+                  <div className={styles.binaryContent}>
+                    <span>{outcome.label}</span>
+                    {pct !== null ? <span className={styles.binaryPct}>{formatPercent(pct, 0)}</span> : null}
+                  </div>
                 </>
               ) : (
                 <>
@@ -214,7 +218,8 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
                     <div className={styles.barFill} style={{ width: `${pct !== null ? pct * 100 : 0}%` }} />
                   </div>
                   <span className={styles.barLabel}>
-                    {outcome.label} {pct !== null ? formatPercent(pct, 0) : ''}
+                    <span>{outcome.label}</span>
+                    {pct !== null ? <span className={styles.barPct}>{formatPercent(pct, 0)}</span> : null}
                   </span>
                 </>
               )}
@@ -227,6 +232,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
         <div className={styles.disclosure}>
           <button
             type="button"
+            className={styles.disclosureToggle}
             aria-expanded={showResolution}
             onClick={() => {
               setShowResolution((v) => !v);
@@ -250,6 +256,7 @@ export function MarketDetailState({ marketId, onBack, onSelectOutcome }: MarketD
       <div className={styles.disclosure}>
         <button
           type="button"
+          className={styles.disclosureToggle}
           aria-expanded={showOrderBook}
           onClick={() => {
             setShowOrderBook((v) => !v);

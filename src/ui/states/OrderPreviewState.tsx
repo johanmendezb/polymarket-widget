@@ -141,55 +141,57 @@ export function OrderPreviewState({ market, outcome, onConfirm, onBack }: OrderP
 
       <fieldset className={styles.amountBlock} disabled={ticketDisabled}>
         <legend className={styles.amountLabel}>Amount</legend>
-        <div className={styles.amountRow}>
-          <div role="group" aria-label="Amount unit" className={styles.unitToggle}>
-            <button
-              type="button"
-              aria-pressed={unit === 'usdc'}
-              onClick={() => {
-                handleUnitChange('usdc');
+        <div className={styles.amountBox}>
+          <div className={styles.amountRow}>
+            <div role="group" aria-label="Amount unit" className={styles.unitToggle}>
+              <button
+                type="button"
+                aria-pressed={unit === 'usdc'}
+                onClick={() => {
+                  handleUnitChange('usdc');
+                }}
+              >
+                $
+              </button>
+              <button
+                type="button"
+                aria-pressed={unit === 'shares'}
+                onClick={() => {
+                  handleUnitChange('shares');
+                }}
+              >
+                shares
+              </button>
+            </div>
+            <label className={styles.visuallyHidden} htmlFor="order-amount-input">
+              Amount in {unit === 'usdc' ? 'dollars' : 'shares'}
+            </label>
+            <input
+              id="order-amount-input"
+              className={styles.amountInput}
+              type="number"
+              min="0"
+              inputMode="decimal"
+              value={amountInput}
+              disabled={ticketDisabled}
+              onChange={(e) => {
+                handleAmountChange(e.target.value);
               }}
-            >
-              $
-            </button>
-            <button
-              type="button"
-              aria-pressed={unit === 'shares'}
-              onClick={() => {
-                handleUnitChange('shares');
-              }}
-            >
-              shares
-            </button>
+            />
           </div>
-          <label className={styles.visuallyHidden} htmlFor="order-amount-input">
-            Amount in {unit === 'usdc' ? 'dollars' : 'shares'}
-          </label>
-          <input
-            id="order-amount-input"
-            className={styles.amountInput}
-            type="number"
-            min="0"
-            inputMode="decimal"
-            value={amountInput}
-            disabled={ticketDisabled}
-            onChange={(e) => {
-              handleAmountChange(e.target.value);
-            }}
-          />
-        </div>
-        <div className={styles.presets}>
-          {PRESETS_USDC.map((preset) => (
-            <button
-              key={preset}
-              type="button"
-              onClick={() => {
-                setPreset(preset);
-              }}
-            >
-              ${preset}
-            </button>
-          ))}
+          <div className={styles.presets}>
+            {PRESETS_USDC.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => {
+                  setPreset(preset);
+                }}
+              >
+                ${preset}
+              </button>
+            ))}
+          </div>
         </div>
       </fieldset>
 
@@ -242,13 +244,15 @@ export function OrderPreviewState({ market, outcome, onConfirm, onBack }: OrderP
 
           <div className={styles.line}>
             <dt>
-              Fee ({market.fees.displayLabel}
-              {market.fees.source === 'category-fallback' ? ' · estimated' : ''})
+              Fee ({market.fees.displayLabel})
+              {market.fees.source === 'category-fallback' ? (
+                <span className={styles.estimatedTag}>estimated</span>
+              ) : null}
             </dt>
             <dd>{formatUsdc(fill.fee)}</dd>
           </div>
 
-          <div className={styles.line}>
+          <div className={`${styles.line} ${styles.total}`}>
             <dt>Total cost</dt>
             <dd>{formatUsdc(fill.totalCost)}</dd>
           </div>
@@ -291,7 +295,11 @@ export function OrderPreviewState({ market, outcome, onConfirm, onBack }: OrderP
         >
           {ladder.label}
         </button>
-        <p id="cta-reason" className={styles.ctaReason} aria-live="assertive">
+        <p
+          id="cta-reason"
+          className={ladder.canProceed ? styles.ctaReason : `${styles.ctaReason} ${styles.ctaReasonError}`}
+          aria-live="assertive"
+        >
           {ladder.canProceed ? 'Simulated. No funds move.' : ladder.label}
         </p>
       </div>

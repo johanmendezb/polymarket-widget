@@ -38,7 +38,7 @@ export function ConfirmationState({ market, outcome, fill, onBackToMarkets }: Co
           <dt>Fee paid</dt>
           <dd>{formatUsdc(fill.fee)}</dd>
         </div>
-        <div className={styles.line}>
+        <div className={`${styles.line} ${styles.total}`}>
           <dt>Total cost</dt>
           <dd>{formatUsdc(fill.totalCost)}</dd>
         </div>
