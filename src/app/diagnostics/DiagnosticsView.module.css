@@ -1,7 +1,7 @@
 .page {
   max-width: 48rem;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-8) var(--space-4) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -13,17 +13,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .title {
   margin: 0;
-  font-size: var(--text-xl-size);
-  line-height: var(--text-xl-leading);
-  font-weight: 700;
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-leading);
+  font-weight: var(--text-display-weight);
+  letter-spacing: var(--tracking-tight);
 }
 
 .subtitle {
   margin: 0;
+  max-width: 42rem;
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
   color: var(--text-secondary);
@@ -42,6 +46,24 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   background: var(--surface-base);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .box {
+    animation: boxEnter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+  }
+}
+
+@keyframes boxEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* The one register-bearing diagnostic: the cost waterfall walks an actual
@@ -83,12 +105,21 @@
   font-weight: 600;
 }
 
+/* Every diagnostic's sample count travels with it as a quiet chip — this is
+   the thing that stops a zero from ever being read as a measurement. */
 .sampleCount {
   flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-raised);
   font-size: var(--text-xs-size);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
   font-variant-numeric: var(--font-tabular);
+}
+
+.boxCost .sampleCount {
+  background: var(--register-cost-border);
 }
 
 .boxBody {
@@ -100,8 +131,16 @@
   font-size: var(--text-sm-size);
 }
 
+/* A deliberate empty state — the manifest being empty is a fact about the
+   world, not a zero pretending to be a measurement, so it gets the same
+   dashed-border, quiet-neutral treatment used for "no results" states
+   elsewhere rather than looking like a broken table. */
 .manifestEmpty {
   margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
   font-size: var(--text-sm-size);
   color: var(--text-muted);
 }
@@ -131,8 +170,20 @@
 .methodology summary {
   cursor: pointer;
   user-select: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  margin: 0 calc(var(--space-2) * -1);
   font-weight: 600;
   color: var(--text-primary);
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.methodology summary:hover {
+  background: var(--surface-raised);
+}
+
+.boxCost .methodology summary:hover {
+  background: var(--register-cost-border);
 }
 
 .methodologyBody {
@@ -142,8 +193,15 @@
 
 .emptyDiagnostic {
   margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
   font-size: var(--text-sm-size);
   color: var(--text-muted);
+}
+
+.boxCost .emptyDiagnostic {
+  border-color: var(--register-cost-border);
 }
 
 .stat {
@@ -168,6 +226,12 @@
 .tableWrap {
   overflow-x: auto;
   margin-top: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.boxCost .tableWrap {
+  border-color: var(--register-cost-border);
 }
 
 .table {
@@ -179,19 +243,24 @@
 
 .table th {
   text-align: left;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
-  padding-bottom: var(--space-1);
+  background: var(--surface-raised);
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
+}
+
+.boxCost .table th {
+  background: var(--register-cost-border);
 }
 
 .table td {
-  padding: var(--space-1) var(--space-4) var(--space-1) 0;
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
   border-top: 1px solid var(--border-subtle);
   color: var(--text-secondary);
 }
 
-.table td:last-child {
-  padding-right: 0;
+.table tr:first-child td {
+  border-top: none;
 }
 
 .numCell {

@@ -4,15 +4,22 @@
  * See globals.css's register-system comment before touching any colour here.
  */
 
+/* A left accent stripe carries the model register's identity without
+   turning into a fourth brand accent — see globals.css: registers are
+   colour, brand chrome is separate. `border-left` widens instead of adding
+   a decorative pseudo-element so it survives at 380px without extra
+   layout math. */
 .root {
   border: 1px solid var(--register-model-border);
+  border-left: 3px solid var(--register-model-fg);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   background: var(--register-model-bg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  transition: box-shadow var(--motion-duration-base) var(--motion-ease-standard);
 }
 
 .toggle {
@@ -25,22 +32,58 @@
   border-radius: var(--radius-md);
   color: var(--register-model-fg);
   cursor: pointer;
-  font-weight: 600;
-  padding: var(--space-1) var(--space-3);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-leading);
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color var(--motion-duration-base) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 .toggle:hover {
-  background: var(--register-model-bg);
-  box-shadow: var(--shadow-sm);
+  background: var(--surface-raised);
+  border-color: var(--register-model-fg);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.toggle:active {
+  transform: translateY(0);
+  transition-duration: var(--motion-duration-fast);
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panelBody {
+    animation: panelEnter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+  }
+}
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .heading {
   margin: 0;
   font-weight: 700;
-  font-size: var(--text-sm-size);
-  line-height: var(--text-sm-leading);
+  font-size: var(--text-base-size);
+  line-height: var(--text-base-leading);
+  letter-spacing: var(--tracking-snug);
   color: var(--register-model-fg);
 }
 
@@ -85,8 +128,10 @@
 }
 
 .evidenceItem {
-  border-left: 2px solid var(--register-model-border);
-  padding-left: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--register-model-border);
+  background: var(--surface-base);
+  padding: var(--space-2) var(--space-3);
 }
 
 .evidenceClaim {
@@ -97,7 +142,7 @@
 }
 
 .evidenceMeta {
-  margin: var(--space-1) 0 0;
+  margin: var(--space-2) 0 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -111,7 +156,12 @@
   font-weight: 600;
 }
 
+/* The claim's date and stance read as quiet chips alongside the source
+   link, matching the metadata-chip motif used across the widget. */
 .evidenceDate {
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  background: var(--surface-raised);
   color: var(--text-muted);
 }
 
@@ -126,6 +176,7 @@
   font-size: 0.68rem;
   letter-spacing: 0.03em;
   font-weight: 600;
+  color: var(--text-muted);
 }
 
 .supportsTag {
@@ -146,27 +197,33 @@
 }
 
 /*
- * The estimate range is the panel's centrepiece: real typographic weight,
- * tabular figures, and `vs. market …` kept clearly subordinate underneath.
+ * The estimate range is the panel's centrepiece: it earns weight comparable
+ * to the market's own headline figure without reaching for `--text-2xl-*`,
+ * which globals.css reserves for the market register alone — the model
+ * register gets there through boosted weight, tracking and its own tinted
+ * stage instead of borrowing the market's type step.
  */
 .estimateBlock {
   background: var(--surface-base);
   border: 1px solid var(--register-model-border);
   border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
 }
 
 .estimateLabel {
   margin: 0;
   font-size: var(--text-xs-size);
+  font-weight: 600;
   color: var(--register-model-fg);
 }
 
 .estimateRange {
   margin: var(--space-1) 0 0;
-  font-size: var(--text-xl-size);
-  line-height: var(--text-xl-leading);
-  font-weight: 700;
+  font-size: calc(var(--text-xl-size) * 1.3);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
   color: var(--register-model-fg);
   font-variant-numeric: var(--font-tabular);
 }
@@ -184,22 +241,34 @@
   font-size: var(--text-sm-size);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
+  border-left: 3px solid var(--semantic-warning-fg);
   background: var(--semantic-warning-bg);
   color: var(--semantic-warning-fg);
 }
 
-.verdictLabel {
+.verdictBadge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
   margin: 0;
   font-weight: 700;
-  font-size: var(--text-base-size);
+  font-size: var(--text-sm-size);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
 
 .verdictConsider {
+  background: var(--semantic-positive-bg);
   color: var(--semantic-positive-fg);
 }
 
-.verdictNoBet {
-  color: var(--semantic-danger-fg);
+/* Abstention is a result, not a failure — it stays on the neutral surface
+   register, never the danger palette the error states use below. */
+.verdictAbstain {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .verdictNote {
@@ -219,15 +288,36 @@
 
 .reasonDetails summary {
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  margin: 0 calc(var(--space-2) * -1);
   font-size: var(--text-sm-size);
   font-weight: 600;
   color: var(--text-primary);
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.reasonDetails summary:hover {
+  background: var(--surface-raised);
 }
 
 .reasonJustification {
   margin: var(--space-1) 0 0 var(--space-4);
   font-size: var(--text-sm-size);
   color: var(--text-secondary);
+}
+
+/* Deliberately quiet and neutral — no usable evidence is a real, disclosed
+   answer, not a failure, so it borrows the same dashed-border motif used
+   for "no results" elsewhere rather than any error treatment. */
+.noEvidenceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px dashed var(--register-model-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
 }
 
 .noEvidenceHeadline {
@@ -240,20 +330,23 @@
 /*
  * The provenance footer is what makes a forecast a measurement rather than
  * a claim — legible and orderly at AA contrast, even at --text-xs-size.
+ * A label/value grid keeps every row aligned at 380px, not a loose
+ * flex-wrap bag; the wide container query below regroups it into three
+ * columns of self-contained pairs.
  */
 .provenance {
   margin: var(--space-1) 0 0;
   padding-top: var(--space-2);
   border-top: 1px solid var(--register-model-border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
   font-size: var(--text-xs-size);
 }
 
 .provenance div {
-  display: flex;
-  gap: var(--space-1);
+  display: contents;
 }
 
 .provenance dt {
@@ -269,18 +362,32 @@
 
 /*
  * AI_TIMEOUT, AI_INVALID_OUTPUT and the INTERNAL fallback all land here.
- * They already carry distinct copy (see ERROR_COPY); the error code badge
- * adds a second, visual distinction between them without inventing new text.
+ * They already carry distinct copy (see ERROR_COPY) and now a distinct
+ * icon each (see ErrorIcon); the error code badge adds a third, visual
+ * distinction between them without inventing new text. All three stay on
+ * the danger register deliberately — unlike abstention, these are genuine
+ * failures.
  */
 .errorBlock {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm-size);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
+  border: 1px solid var(--semantic-danger-fg);
   background: var(--semantic-danger-bg);
   color: var(--semantic-danger-fg);
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.errorMessage {
+  margin: 0;
 }
 
 .errorCode {
@@ -293,7 +400,7 @@
   padding: 0 var(--space-1);
 }
 
-.errorBlock button {
+.errorRetry {
   border: 1px solid currentColor;
   background: none;
   color: inherit;
@@ -304,16 +411,29 @@
   cursor: pointer;
   flex-shrink: 0;
   margin-left: auto;
+  transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.errorRetry:hover {
+  transform: translateY(-1px);
+}
+
+.errorRetry:active {
+  transform: translateY(0);
 }
 
 @container widget-shell (min-width: 640px) {
   .estimateRange {
-    font-size: calc(var(--text-xl-size) * 1.15);
+    font-size: calc(var(--text-xl-size) * 1.5);
   }
 
   .provenance {
-    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2) var(--space-4);
+  }
+
+  .provenance div {
+    display: flex;
+    gap: var(--space-1);
   }
 }
